@@ -251,4 +251,47 @@ router.get(
 // ---------------------------------------------------------------------------
 // ALTER TABLE scanner_runs ADD COLUMN IF NOT EXISTS result_json JSONB;
 
+
+// ---------------------------------------------------------------------------
+// PATCH /api/v1/scanner/runs/:scanRunId — update run status (used by GitHub Actions)
+// ---------------------------------------------------------------------------
+
+router.patch(
+  '/runs/:scanRunId',
+  requireAuth('scanner:run'),
+  async (req, res) => {
+    const { scanRunId } = req.params;
+    const { status, result_json, error_message } = req.body;
+
+    const allowed = ['running', 'completed', 'failed'];
+    if (status && !allowed.includes(status)) {
+      return res.status(400).json({ error: 'invalid_status' });
+    }
+
+    const run = await query(
+      'SELECT client_id FROM scanner_runs WHERE id = $1',
+      [scanRunId]
+    );
+    if (!run.rows.length) return res.status(404).json({ error: 'not_found' });
+    if (run.rows[0].client_id !== req.auth.clientId && !req.auth.scopes.includes('admin')) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
+
+    const fields = [];
+    const vals   = [];
+    let   i      = 1;
+    if (status)       { fields.push(`status = $${i++}`);        vals.push(status); }
+    if (result_json)  { fields.push(`result_json = $${i++}`);   vals.push(JSON.stringify(result_json)); }
+    if (error_message){ fields.push(`error_message = $${i++}`); vals.push(error_message.slice(0,500)); }
+    if (status === 'completed' || status === 'failed') {
+      fields.push(`completed_at = NOW()`);
+    }
+    if (!fields.length) return res.status(400).json({ error: 'nothing_to_update' });
+
+    vals.push(scanRunId);
+    await query(`UPDATE scanner_runs SET ${fields.join(', ')} WHERE id = $${i}`, vals);
+    return res.status(204).send();
+  }
+);
+
 export default router;

@@ -1,0 +1,155 @@
+name: ConsentGuard Scanner
+
+on:
+  # Weekly schedule — Monday 2am UTC
+  schedule:
+    - cron: '0 2 * * 1'
+
+  # Manual trigger from GitHub UI (Actions tab → Run workflow)
+  # Lets you kick off an on-demand scan without waiting for Monday
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Override base URL to scan (leave blank for default)'
+        required: false
+        default: ''
+      notify:
+        description: 'Send Slack alert on completion?'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  scan:
+    name: Run pre-consent pixel scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # hard cap — a full 50-page scan takes ~10 min
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js setup ─────────────────────────────────────────────────
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: scanner/package-lock.json
+
+      # ── 3. Install scanner dependencies ──────────────────────────────────
+      - name: Install scanner dependencies
+        working-directory: scanner
+        run: npm ci --prefer-offline
+
+      # ── 4. Install Playwright Chromium only (skip Firefox/WebKit) ────────
+      # Chromium alone is ~180 MB. Full install is ~500 MB — skip it.
+      - name: Install Playwright Chromium
+        working-directory: scanner
+        run: npx playwright install chromium --with-deps
+
+      # ── 5. Create scan run record via API ─────────────────────────────────
+      # The API returns a scanRunId we use to post results back.
+      - name: Create scan run
+        id: create_run
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "${{ secrets.CONSENTGUARD_API_URL }}/api/v1/scanner/run/${{ secrets.CONSENTGUARD_CLIENT_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.CONSENTGUARD_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"triggeredBy":"github_actions"}' \
+          )
+          echo "Response: $RESPONSE"
+          SCAN_RUN_ID=$(echo "$RESPONSE" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).scanRunId||''))")
+          echo "scan_run_id=$SCAN_RUN_ID" >> $GITHUB_OUTPUT
+          echo "Scan run ID: $SCAN_RUN_ID"
+
+      # ── 6. Run the scanner ────────────────────────────────────────────────
+      - name: Run site scan
+        id: run_scan
+        working-directory: scanner
+        env:
+          CONSENTGUARD_API_URL:  ${{ secrets.CONSENTGUARD_API_URL }}
+          CONSENTGUARD_API_KEY:  ${{ secrets.CONSENTGUARD_API_KEY }}
+          CONSENTGUARD_CLIENT_ID: ${{ secrets.CONSENTGUARD_CLIENT_ID }}
+          SCAN_RUN_ID:           ${{ steps.create_run.outputs.scan_run_id }}
+          TARGET_URL:            ${{ github.event.inputs.target_url || secrets.CONSENTGUARD_BASE_URL }}
+          CLIENT_DOMAIN:         ${{ secrets.CONSENTGUARD_CLIENT_DOMAIN }}
+        run: node scripts/run-scan.js
+
+      # ── 7. Upload scan artifacts ──────────────────────────────────────────
+      # The JSON report and screenshots are uploaded as workflow artifacts
+      # so you can download them from the GitHub Actions UI for 30 days.
+      - name: Upload scan report
+        if: always()   # upload even on failure so you can debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-report-${{ github.run_id }}
+          path: |
+            scanner/reports/
+            scanner/screenshots/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      # ── 8. Post results back to API ───────────────────────────────────────
+      # The run-scan.js script POSTs results directly, but this step
+      # confirms the run is marked complete in the DB.
+      - name: Confirm scan completion
+        if: success()
+        run: |
+          STATUS=$(curl -s \
+            "${{ secrets.CONSENTGUARD_API_URL }}/api/v1/scanner/runs/${{ steps.create_run.outputs.scan_run_id }}" \
+            -H "Authorization: Bearer ${{ secrets.CONSENTGUARD_API_KEY }}" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).status||'unknown'))")
+          echo "Final scan status: $STATUS"
+          if [ "$STATUS" != "completed" ]; then
+            echo "::warning::Scan run did not reach completed status (got: $STATUS)"
+          fi
+
+      # ── 9. Slack alert on critical findings ──────────────────────────────
+      - name: Notify Slack on critical findings
+        if: >
+          success() &&
+          steps.run_scan.outputs.has_critical == 'true' &&
+          (github.event.inputs.notify != 'false')
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": ":rotating_light: *ConsentGuard: Critical findings detected*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":rotating_light: *ConsentGuard scan found critical issues on `${{ secrets.CONSENTGUARD_CLIENT_DOMAIN }}`*\n\n${{ steps.run_scan.outputs.critical_summary }}\n\n<${{ secrets.CONSENTGUARD_API_URL }}/dashboard|View dashboard>"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Scan run: `${{ steps.create_run.outputs.scan_run_id }}` · <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL:  ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      # ── 10. Fail the workflow if critical findings exist ──────────────────
+      # This makes the scan show as red in GitHub UI and triggers email
+      # notifications to repo watchers — useful as a backstop alert.
+      - name: Fail on critical findings
+        if: steps.run_scan.outputs.has_critical == 'true'
+        run: |
+          echo "::error::Critical pre-consent tracking findings detected. Review the scan report."
+          exit 1
