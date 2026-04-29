@@ -1,0 +1,17 @@
+{
+  "name": "consentguard-scanner",
+  "version": "1.0.0",
+  "description": "ConsentGuard pre-consent pixel and cookie scanner",
+  "type": "module",
+  "main": "core/site-crawler.js",
+  "scripts": {
+    "scan":    "node scripts/run-scan.js",
+    "install-browsers": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.44.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

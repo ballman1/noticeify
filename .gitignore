@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment / secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Playwright browsers (large binaries)
+/scanner/node_modules/
+/backend/node_modules/
+
+# Build output
+dist/
+build/
+.cache/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Playwright test artifacts
+test-results/
+playwright-report/
+
+# Database dumps
+*.sql.gz
+*.dump
