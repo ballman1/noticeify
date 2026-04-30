@@ -1,0 +1,10 @@
+# Cloudflare Pages redirect rules
+# https://developers.cloudflare.com/pages/configuration/redirects/
+
+# Root → dashboard
+/                    /dashboard/index.html    200
+
+# Clean URL for banner script (no /core/ prefix needed)
+/consent-loader.js   /core/consent-loader.js  200
+/consent-ui.js       /core/consent-ui.js      200
+/consent-logger.js   /core/consent-logger.js  200
