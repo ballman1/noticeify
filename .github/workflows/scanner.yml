@@ -1,4 +1,4 @@
-name: ConsentGuard Scanner
+name: Noticeify Scanner
 
 on:
   # Weekly schedule — Monday 2am UTC
@@ -59,8 +59,8 @@ jobs:
         id: create_run
         run: |
           RESPONSE=$(curl -s -X POST \
-            "${{ secrets.CONSENTGUARD_API_URL }}/api/v1/scanner/run/${{ secrets.CONSENTGUARD_CLIENT_ID }}" \
-            -H "Authorization: Bearer ${{ secrets.CONSENTGUARD_API_KEY }}" \
+            "${{ secrets.NOTICEIFY_API_URL }}/api/v1/scanner/run/${{ secrets.NOTICEIFY_CLIENT_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.NOTICEIFY_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{"triggeredBy":"github_actions"}' \
           )
@@ -74,12 +74,12 @@ jobs:
         id: run_scan
         working-directory: scanner
         env:
-          CONSENTGUARD_API_URL:  ${{ secrets.CONSENTGUARD_API_URL }}
-          CONSENTGUARD_API_KEY:  ${{ secrets.CONSENTGUARD_API_KEY }}
-          CONSENTGUARD_CLIENT_ID: ${{ secrets.CONSENTGUARD_CLIENT_ID }}
+          NOTICEIFY_API_URL:  ${{ secrets.NOTICEIFY_API_URL }}
+          NOTICEIFY_API_KEY:  ${{ secrets.NOTICEIFY_API_KEY }}
+          NOTICEIFY_CLIENT_ID: ${{ secrets.NOTICEIFY_CLIENT_ID }}
           SCAN_RUN_ID:           ${{ steps.create_run.outputs.scan_run_id }}
-          TARGET_URL:            ${{ github.event.inputs.target_url || secrets.CONSENTGUARD_BASE_URL }}
-          CLIENT_DOMAIN:         ${{ secrets.CONSENTGUARD_CLIENT_DOMAIN }}
+          TARGET_URL:            ${{ github.event.inputs.target_url || secrets.NOTICEIFY_BASE_URL }}
+          CLIENT_DOMAIN:         ${{ secrets.NOTICEIFY_CLIENT_DOMAIN }}
         run: node scripts/run-scan.js
 
       # ── 7. Upload scan artifacts ──────────────────────────────────────────
@@ -103,8 +103,8 @@ jobs:
         if: success()
         run: |
           STATUS=$(curl -s \
-            "${{ secrets.CONSENTGUARD_API_URL }}/api/v1/scanner/runs/${{ steps.create_run.outputs.scan_run_id }}" \
-            -H "Authorization: Bearer ${{ secrets.CONSENTGUARD_API_KEY }}" \
+            "${{ secrets.NOTICEIFY_API_URL }}/api/v1/scanner/runs/${{ steps.create_run.outputs.scan_run_id }}" \
+            -H "Authorization: Bearer ${{ secrets.NOTICEIFY_API_KEY }}" \
             | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>console.log(JSON.parse(d).status||'unknown'))")
           echo "Final scan status: $STATUS"
           if [ "$STATUS" != "completed" ]; then
@@ -121,13 +121,13 @@ jobs:
         with:
           payload: |
             {
-              "text": ":rotating_light: *ConsentGuard: Critical findings detected*",
+              "text": ":rotating_light: *Noticeify: Critical findings detected*",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":rotating_light: *ConsentGuard scan found critical issues on `${{ secrets.CONSENTGUARD_CLIENT_DOMAIN }}`*\n\n${{ steps.run_scan.outputs.critical_summary }}\n\n<${{ secrets.CONSENTGUARD_API_URL }}/dashboard|View dashboard>"
+                    "text": ":rotating_light: *Noticeify scan found critical issues on `${{ secrets.NOTICEIFY_CLIENT_DOMAIN }}`*\n\n${{ steps.run_scan.outputs.critical_summary }}\n\n<${{ secrets.NOTICEIFY_API_URL }}/dashboard|View dashboard>"
                   }
                 },
                 {

@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — gpc.js
+ * Noticeify — gpc.js
  *
  * Detects the Global Privacy Control (GPC) signal per the GPC spec:
  * https://globalprivacycontrol.github.io/gpc-spec/
@@ -11,7 +11,7 @@
  * This module handles the JS side (client-side detection). The server-side
  * Sec-GPC header check should be handled in your backend middleware.
  *
- * When GPC is detected, ConsentGuard treats marketing and personalization
+ * When GPC is detected, Noticeify treats marketing and personalization
  * categories as denied by default. The user can still open preferences and
  * override, but the system defaults to the conservative interpretation.
  */

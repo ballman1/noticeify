@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — app.js
+ * Noticeify — app.js
  *
  * Express application entry point.
  *
@@ -142,8 +142,8 @@ app.use((err, req, res, next) => {
 // ---------------------------------------------------------------------------
 
 app.listen(PORT, () => {
-  console.log(`[ConsentGuard API] Listening on port ${PORT}`);
-  console.log(`[ConsentGuard API] NODE_ENV=${process.env.NODE_ENV || 'development'}`);
+  console.log(`[Noticeify API] Listening on port ${PORT}`);
+  console.log(`[Noticeify API] NODE_ENV=${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;

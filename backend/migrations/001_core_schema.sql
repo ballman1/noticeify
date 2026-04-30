@@ -1,5 +1,5 @@
 -- =============================================================================
--- ConsentGuard — Migration 001: Core schema
+-- Noticeify — Migration 001: Core schema
 -- =============================================================================
 -- Run order: 001 → 002 → 003
 -- Engine: PostgreSQL 14+
@@ -19,8 +19,8 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";     -- trigram indexes for text search
 -- ---------------------------------------------------------------------------
 -- clients
 --
--- One row per website using ConsentGuard. The clientId written into the
--- browser cookie (e.g. "cg_39dg_prod") references this table.
+-- One row per website using Noticeify. The clientId written into the
+-- browser cookie (e.g. "nfy_39dg_prod") references this table.
 -- ---------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS clients (
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS consent_events (
 
   -- Identity
   id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  consent_id        TEXT        NOT NULL UNIQUE,  -- from browser (cg_xxx_yyy)
+  consent_id        TEXT        NOT NULL UNIQUE,  -- from browser (nfy_xxx_yyy)
   client_id         UUID        NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
 
   -- Versioning — tells you exactly what banner/policy the user saw

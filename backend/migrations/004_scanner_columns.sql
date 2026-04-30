@@ -1,5 +1,5 @@
 -- =============================================================================
--- ConsentGuard — Migration 004: Scanner result storage + scheduling
+-- Noticeify — Migration 004: Scanner result storage + scheduling
 -- =============================================================================
 
 BEGIN;
@@ -87,7 +87,7 @@ $$ LANGUAGE plpgsql;
 -- ---------------------------------------------------------------------------
 -- INSERT INTO scan_schedules (client_id, cron_expression, next_run_at, notify_email)
 -- SELECT id, '0 2 * * 1', NOW() + INTERVAL '1 minute', 'yourteam@example.com'
--- FROM clients WHERE client_key = 'cg_39dg_prod'
+-- FROM clients WHERE client_key = 'nfy_39dg_prod'
 -- ON CONFLICT (client_id) DO NOTHING;
 
 COMMIT;

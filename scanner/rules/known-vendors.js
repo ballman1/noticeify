@@ -1,5 +1,5 @@
 /**
- * ConsentGuard Scanner — rules/known-vendors.js
+ * Noticeify Scanner — rules/known-vendors.js
  *
  * Fingerprint database for classifying third-party scripts, pixels,
  * and cookies detected during a scan. Each entry maps a URL pattern

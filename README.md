@@ -1,6 +1,6 @@
-# ConsentGuard — Consent Loader & Vendor Registry
+# Noticeify — Consent Loader & Vendor Registry
 
-JavaScript implementation of the ConsentGuard consent loader for
+JavaScript implementation of the Noticeify consent loader for
 39dollarglasses.com. This is the critical-path module that prevents
 non-essential scripts from loading before affirmative user consent.
 
@@ -9,7 +9,7 @@ non-essential scripts from loading before affirmative user consent.
 ## File map
 
 ```
-consentguard/
+noticeify/
 ├── core/
 │   ├── consent-loader.js     ← Main engine. Import/embed this.
 │   ├── consent-storage.js    ← Cookie + localStorage read/write
@@ -41,7 +41,7 @@ consentguard/
   │     YES → applyConsent()  → updateConsentMode() → loadApprovedVendors()
   │     NO  → showBanner()    → user action → commitConsent() → applyConsent()
   │
-  └── window.ConsentManager API exposed
+  └── window.Noticeify API exposed
 ```
 
 ---
@@ -50,8 +50,8 @@ consentguard/
 
 ```html
 <script
-  src="https://cdn.consentguard.io/cg.js"
-  data-client-id="cg_39dg_prod"
+  src="https://cdn.noticeify.com/cg.js"
+  data-client-id="nfy_39dg_prod"
   data-domain="39dollarglasses.com"
   async>
 </script>
@@ -63,29 +63,29 @@ may fire before Consent Mode defaults are set.
 
 ---
 
-## Public API (window.ConsentManager)
+## Public API (window.Noticeify)
 
 ```javascript
 // Check if a category was granted
-if (window.ConsentManager.hasConsent('marketing')) {
+if (window.Noticeify.hasConsent('marketing')) {
   // safe to fire marketing-dependent code
 }
 
 // Get the full consent record
-const record = window.ConsentManager.getConsent();
+const record = window.Noticeify.getConsent();
 // → { consentId, timestamp, categories, gpcDetected, version, ... }
 
 // Open the preference center (e.g. from footer link)
-window.ConsentManager.openPreferences();
+window.Noticeify.openPreferences();
 
 // Programmatically update consent (e.g. from server-side sync)
-window.ConsentManager.updateConsent({ analytics: true, marketing: false, ... });
+window.Noticeify.updateConsent({ analytics: true, marketing: false, ... });
 
 // Withdraw all consent
-window.ConsentManager.withdrawConsent();
+window.Noticeify.withdrawConsent();
 
 // React to consent changes
-window.ConsentManager.onConsentChange(({ categories }) => {
+window.Noticeify.onConsentChange(({ categories }) => {
   if (categories?.analytics) {
     // analytics just became available — initialize anything
     // that couldn't wait for page load
@@ -178,10 +178,10 @@ legal sign-off), set `config.allowGPCOverride = true` in the init call.
 
 ---
 
-## Cookie written by ConsentGuard
+## Cookie written by Noticeify
 
 ```
-Name:     cg_consent
+Name:     nfy_consent
 Value:    URI-encoded JSON consent record
 Expires:  365 days
 Path:     /
@@ -195,8 +195,8 @@ The consent record shape:
 ```json
 {
   "version": "1.0",
-  "clientId": "cg_39dg_prod",
-  "consentId": "cg_lf2k3a_x7m2n1",
+  "clientId": "nfy_39dg_prod",
+  "consentId": "nfy_lf2k3a_x7m2n1",
   "timestamp": "2026-04-29T14:38:00.000Z",
   "source": "banner",
   "gpcDetected": false,
@@ -299,7 +299,7 @@ curl https://your-api/api/v1/scanner/runs/<scanRunId> \
 
 Phase 1 (pre-consent) loads the page in a clean context with no cookies and no consent record. Every third-party network request, cookie, and localStorage entry is recorded. This is the ground truth for what fires before a user makes any choice.
 
-Phase 2 (post-consent) loads the same page after injecting a simulated "accept all" `cg_consent` cookie. The full vendor inventory fires. This gives you the complete list of all third-party scripts on the site.
+Phase 2 (post-consent) loads the same page after injecting a simulated "accept all" `nfy_consent` cookie. The full vendor inventory fires. This gives you the complete list of all third-party scripts on the site.
 
 The diff between phases 1 and 2 identifies exactly which vendors fire before consent. Anything in phase 1 that wasn't supposed to be there is a finding.
 
@@ -316,7 +316,7 @@ Insert a row into `scan_schedules` and the scheduler worker (run separately) wil
 ```sql
 INSERT INTO scan_schedules (client_id, next_run_at, notify_email)
 SELECT id, NOW() + INTERVAL '1 minute', 'your@email.com'
-FROM clients WHERE client_key = 'cg_39dg_prod';
+FROM clients WHERE client_key = 'nfy_39dg_prod';
 ```
 
 

@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — routes/scanner.js
+ * Noticeify — routes/scanner.js
  *
  * POST /api/v1/scanner/run/:clientId
  *   Triggers a new site scan. Returns immediately with a scanRunId.

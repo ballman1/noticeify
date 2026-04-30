@@ -1,7 +1,7 @@
 /**
- * ConsentGuard — consent-logger.js
+ * Noticeify — consent-logger.js
  *
- * Sends consent records to the ConsentGuard backend API for audit trail
+ * Sends consent records to the Noticeify backend API for audit trail
  * storage. This is what powers the dashboard's "Recent consent events" feed
  * and provides the exportable compliance log.
  *
@@ -14,7 +14,7 @@
  *   - Deduplication: each consentId is only sent once; a sent-IDs set in
  *     localStorage prevents double-sends on SPA navigations
  *
- * The API endpoint (/api/v1/consent) is your ConsentGuard backend.
+ * The API endpoint (/api/v1/consent) is your Noticeify backend.
  * See backend/routes/consent.js for the receiving end.
  */
 
@@ -22,9 +22,9 @@
 // Config
 // ---------------------------------------------------------------------------
 
-const API_ENDPOINT     = 'https://api.consentguard.io/v1/consent';
-const RETRY_QUEUE_KEY  = 'cg_log_queue';
-const SENT_IDS_KEY     = 'cg_sent_ids';
+const API_ENDPOINT     = 'https://api.noticeify.com/v1/consent';
+const RETRY_QUEUE_KEY  = 'nfy_log_queue';
+const SENT_IDS_KEY     = 'nfy_sent_ids';
 const MAX_RETRY_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MAX_QUEUE_SIZE   = 20;
 
@@ -276,7 +276,7 @@ function registerPagehideHandler(getLastRecord) {
  */
 function logWithdrawal(clientId, gpcDetected) {
   const payload = {
-    consentId:   'cg_' + Date.now().toString(36) + '_withdraw',
+    consentId:   'nfy_' + Date.now().toString(36) + '_withdraw',
     clientId,
     version:     'withdrawal',
     timestamp:   new Date().toISOString(),

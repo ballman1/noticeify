@@ -1,10 +1,10 @@
 /**
- * ConsentGuard — consent-mode.js
+ * Noticeify — consent-mode.js
  *
  * Manages Google Consent Mode v2 integration.
  *
  * Google Consent Mode must be initialized BEFORE gtag.js or GTM loads.
- * ConsentGuard sets all signals to 'denied' at the very start of page load,
+ * Noticeify sets all signals to 'denied' at the very start of page load,
  * then updates them granularly once the user has given (or stored) consent.
  *
  * Required signal mapping from your category choices:
@@ -72,7 +72,7 @@ function setConsentModeDefaults() {
 // ---------------------------------------------------------------------------
 
 /**
- * Maps a ConsentGuard category record to Consent Mode v2 signals and
+ * Maps a Noticeify category record to Consent Mode v2 signals and
  * pushes an 'update' call to gtag.
  *
  * Only updates the signals that changed — Google recommends not sending
@@ -88,7 +88,7 @@ function updateConsentMode(categories) {
 }
 
 /**
- * Translates ConsentGuard category booleans into Google signal strings.
+ * Translates Noticeify category booleans into Google signal strings.
  * Exported separately so the banner can preview what signals will be sent.
  *
  * @param {object} categories

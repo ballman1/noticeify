@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — middleware/auth.js
+ * Noticeify — middleware/auth.js
  *
  * Two authentication paths:
  *

@@ -1,5 +1,5 @@
 /**
- * ConsentGuard Scanner — core/site-crawler.js
+ * Noticeify Scanner — core/site-crawler.js
  *
  * Orchestrates a full-site scan by:
  *   1. Discovering URLs via sitemap.xml + in-page link crawling

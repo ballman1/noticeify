@@ -1,5 +1,5 @@
 /**
- * ConsentGuard Scanner — core/page-scanner.js
+ * Noticeify Scanner — core/page-scanner.js
  *
  * Scans a single URL using Playwright (Chromium) to detect:
  *   - Third-party scripts loading before consent
@@ -118,7 +118,7 @@ async function scanPage(url, options = {}) {
 async function runPhase(browser, url, clientDomain, consentCookieJson) {
   const context = await browser.newContext({
     viewport:          VIEWPORT,
-    userAgent:         'Mozilla/5.0 (compatible; ConsentGuardScanner/1.0)',
+    userAgent:         'Mozilla/5.0 (compatible; NoticeifyScanner/1.0)',
     ignoreHTTPSErrors: true,
     // Block geolocation, notifications etc. to simulate a clean real user
     permissions:       [],
@@ -126,11 +126,11 @@ async function runPhase(browser, url, clientDomain, consentCookieJson) {
   });
 
   // If post-consent phase, inject the consent cookie so the site's own
-  // code (and ConsentGuard's loader) sees a valid stored consent record
+  // code (and Noticeify's loader) sees a valid stored consent record
   if (consentCookieJson) {
     const domain = new URL(url).hostname;
     await context.addCookies([{
-      name:     'cg_consent',
+      name:     'nfy_consent',
       value:    encodeURIComponent(consentCookieJson),
       domain,
       path:     '/',
@@ -487,7 +487,7 @@ function buildAcceptAllCookie(url) {
   return JSON.stringify({
     version:     '1.0',
     clientId:    'scanner',
-    consentId:   'cg_scanner_' + Date.now(),
+    consentId:   'nfy_scanner_' + Date.now(),
     timestamp:   new Date().toISOString(),
     source:      'banner',
     gpcDetected: false,

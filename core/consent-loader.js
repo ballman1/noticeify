@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — consent-loader.js
+ * Noticeify — consent-loader.js
  *
  * The consent loader is the central engine. It runs as early as possible in
  * the page lifecycle and orchestrates everything:
@@ -49,7 +49,7 @@ let _clientId          = '';
  * the <script> embed tag.
  *
  * @param {object} config
- * @param {string} config.clientId   — ConsentGuard client identifier
+ * @param {string} config.clientId   — Noticeify client identifier
  * @param {string} config.domain     — the website domain (for logging)
  */
 async function init(config = {}) {
@@ -66,7 +66,7 @@ async function init(config = {}) {
   // ── Step 3: Check GPC ──────────────────────────────────────────────────────
   _gpcDetected = isGPCEnabled();
   if (_gpcDetected) {
-    pushConsentEvent('cg_gpc_detected', {});
+    pushConsentEvent('nfy_gpc_detected', {});
   }
 
   // ── Step 4: Check for existing stored consent ──────────────────────────────
@@ -183,11 +183,11 @@ function applyConsent(categories, broadcast) {
   loadApprovedVendors(categories);
 
   if (broadcast) {
-    // Log to ConsentGuard API
+    // Log to Noticeify API
     if (_currentConsent) logConsentEvent(_currentConsent);
 
     // Push to GTM dataLayer so GTM-managed tags can react
-    pushConsentEvent('cg_consent_update', buildDataLayerPayload(categories));
+    pushConsentEvent('nfy_consent_update', buildDataLayerPayload(categories));
 
     // Fire registered callbacks
     _changeCallbacks.forEach(cb => {
@@ -195,7 +195,7 @@ function applyConsent(categories, broadcast) {
     });
   } else {
     // Stored consent loaded on page load — fire a distinct dataLayer event
-    pushConsentEvent('cg_consent_loaded', buildDataLayerPayload(categories));
+    pushConsentEvent('nfy_consent_loaded', buildDataLayerPayload(categories));
   }
 }
 
@@ -216,7 +216,7 @@ function loadEssentialVendors() {
           vendor.load();
           _loadedVendorIds.add(vendor.id);
         } catch (e) {
-          console.warn('[ConsentGuard] Failed to load essential vendor:', vendor.id, e);
+          console.warn('[Noticeify] Failed to load essential vendor:', vendor.id, e);
         }
       }
     });
@@ -239,14 +239,14 @@ function loadApprovedVendors(categories) {
         vendor.load();
         _loadedVendorIds.add(vendor.id);
       } catch (e) {
-        console.warn('[ConsentGuard] Failed to load vendor:', vendor.id, e);
+        console.warn('[Noticeify] Failed to load vendor:', vendor.id, e);
       }
     }
   });
 }
 
 // ---------------------------------------------------------------------------
-// Public API — window.ConsentManager
+// Public API — window.Noticeify
 // ---------------------------------------------------------------------------
 
 /**
@@ -331,7 +331,7 @@ function onConsentChange(callback) {
 // Expose public API on window
 // ---------------------------------------------------------------------------
 
-window.ConsentManager = {
+window.Noticeify = {
   getConsent,
   hasConsent,
   updateConsent,
@@ -349,7 +349,7 @@ window.ConsentManager = {
     document.querySelector('script[data-client-id]');
 
   if (!script) {
-    console.warn('[ConsentGuard] Could not find embed script tag. Call ConsentGuard.init() manually.');
+    console.warn('[Noticeify] Could not find embed script tag. Call Noticeify.init() manually.');
     return;
   }
 

@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — media-embed-gate.js
+ * Noticeify — media-embed-gate.js
  *
  * Replaces third-party media iframes (YouTube, Vimeo) with consent-aware
  * placeholders. The actual iframe only loads after the user grants the
@@ -92,7 +92,7 @@ function buildPlaceholder(container, src, width, height) {
         data-cg-activate
         style="background:#fff;color:#1a1a1a;border:none;padding:8px 18px;
                border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;"
-        onclick="window.ConsentManager && window.ConsentManager.openPreferences()"
+        onclick="window.Noticeify && window.Noticeify.openPreferences()"
       >
         Manage privacy settings
       </button>
@@ -200,12 +200,12 @@ function initMediaGate() {
   }
 
   // Hook into ConsentManager change events
-  if (window.ConsentManager) {
-    window.ConsentManager.onConsentChange(onConsentChange);
+  if (window.Noticeify) {
+    window.Noticeify.onConsentChange(onConsentChange);
   } else {
     // ConsentManager may not be ready yet — retry after it initializes
     document.addEventListener('cg:ready', () => {
-      window.ConsentManager.onConsentChange(onConsentChange);
+      window.Noticeify.onConsentChange(onConsentChange);
     });
   }
 }

@@ -1,5 +1,5 @@
 -- =============================================================================
--- ConsentGuard — Migration 003: Retention, RLS, partitioning prep
+-- Noticeify — Migration 003: Retention, RLS, partitioning prep
 -- =============================================================================
 
 BEGIN;
@@ -24,45 +24,45 @@ ALTER TABLE api_keys               ENABLE ROW LEVEL SECURITY;
 
 -- Application user (non-superuser role used by the API server)
 DO $$ BEGIN
-  CREATE ROLE cg_app_user NOLOGIN;
+  CREATE ROLE nfy_app_user NOLOGIN;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 -- Grant table-level access to app user
-GRANT SELECT, INSERT, UPDATE ON clients              TO cg_app_user;
-GRANT SELECT, INSERT         ON consent_events       TO cg_app_user;
-GRANT SELECT, INSERT, UPDATE ON consent_fingerprints TO cg_app_user;
-GRANT SELECT, INSERT, UPDATE ON vendor_registry      TO cg_app_user;
-GRANT SELECT, INSERT, UPDATE ON scanner_runs         TO cg_app_user;
-GRANT SELECT, INSERT, UPDATE ON scanner_findings     TO cg_app_user;
-GRANT SELECT, INSERT, UPDATE ON api_keys             TO cg_app_user;
-GRANT SELECT ON v_vendor_risk_summary                TO cg_app_user;
+GRANT SELECT, INSERT, UPDATE ON clients              TO nfy_app_user;
+GRANT SELECT, INSERT         ON consent_events       TO nfy_app_user;
+GRANT SELECT, INSERT, UPDATE ON consent_fingerprints TO nfy_app_user;
+GRANT SELECT, INSERT, UPDATE ON vendor_registry      TO nfy_app_user;
+GRANT SELECT, INSERT, UPDATE ON scanner_runs         TO nfy_app_user;
+GRANT SELECT, INSERT, UPDATE ON scanner_findings     TO nfy_app_user;
+GRANT SELECT, INSERT, UPDATE ON api_keys             TO nfy_app_user;
+GRANT SELECT ON v_vendor_risk_summary                TO nfy_app_user;
 
 -- RLS policies: app user can only see rows for the current client
 -- The API layer sets app.current_client_id via SET LOCAL before each query
 
 CREATE POLICY client_isolation_consent_events ON consent_events
-  FOR ALL TO cg_app_user
+  FOR ALL TO nfy_app_user
   USING (client_id = current_setting('app.current_client_id', TRUE)::UUID);
 
 CREATE POLICY client_isolation_fingerprints ON consent_fingerprints
-  FOR ALL TO cg_app_user
+  FOR ALL TO nfy_app_user
   USING (client_id = current_setting('app.current_client_id', TRUE)::UUID);
 
 CREATE POLICY client_isolation_vendor_registry ON vendor_registry
-  FOR ALL TO cg_app_user
+  FOR ALL TO nfy_app_user
   USING (client_id = current_setting('app.current_client_id', TRUE)::UUID);
 
 CREATE POLICY client_isolation_scanner_runs ON scanner_runs
-  FOR ALL TO cg_app_user
+  FOR ALL TO nfy_app_user
   USING (client_id = current_setting('app.current_client_id', TRUE)::UUID);
 
 CREATE POLICY client_isolation_scanner_findings ON scanner_findings
-  FOR ALL TO cg_app_user
+  FOR ALL TO nfy_app_user
   USING (client_id = current_setting('app.current_client_id', TRUE)::UUID);
 
 CREATE POLICY client_isolation_api_keys ON api_keys
-  FOR ALL TO cg_app_user
+  FOR ALL TO nfy_app_user
   USING (client_id = current_setting('app.current_client_id', TRUE)::UUID);
 
 -- ---------------------------------------------------------------------------

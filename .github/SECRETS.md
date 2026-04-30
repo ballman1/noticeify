@@ -1,6 +1,6 @@
 # GitHub Actions — Required Secrets
 
-Go to: **github.com/ballman1/consentguard → Settings → Secrets and variables → Actions → New repository secret**
+Go to: **github.com/ballman1/noticeify → Settings → Secrets and variables → Actions → New repository secret**
 
 Add each of the following:
 
@@ -10,11 +10,11 @@ Add each of the following:
 
 | Secret name | Description | Example value |
 |---|---|---|
-| `CONSENTGUARD_API_URL` | Base URL of your deployed Vercel API | `https://consentguard-api.vercel.app` |
-| `CONSENTGUARD_API_KEY` | API key with `scanner:run` + `scanner:read` scopes | `cg_live_abc123...` |
-| `CONSENTGUARD_CLIENT_ID` | UUID of the client row in your database | `a1b2c3d4-...` |
-| `CONSENTGUARD_CLIENT_DOMAIN` | Primary domain, no protocol | `39dollarglasses.com` |
-| `CONSENTGUARD_BASE_URL` | Full URL the scanner starts from | `https://www.39dollarglasses.com` |
+| `NOTICEIFY_API_URL` | Base URL of your deployed Vercel API | `https://noticeify-api.vercel.app` |
+| `NOTICEIFY_API_KEY` | API key with `scanner:run` + `scanner:read` scopes | `nfy_live_abc123...` |
+| `NOTICEIFY_CLIENT_ID` | UUID of the client row in your database | `a1b2c3d4-...` |
+| `NOTICEIFY_CLIENT_DOMAIN` | Primary domain, no protocol | `39dollarglasses.com` |
+| `NOTICEIFY_BASE_URL` | Full URL the scanner starts from | `https://www.39dollarglasses.com` |
 
 ## Optional secrets
 
@@ -27,9 +27,9 @@ Add each of the following:
 ## How to trigger a manual scan
 
 1. Go to **Actions** tab in your GitHub repo
-2. Click **ConsentGuard Scanner** in the left sidebar
+2. Click **Noticeify Scanner** in the left sidebar
 3. Click **Run workflow** (top right of the workflow list)
-4. Optionally enter an override URL (leave blank to use `CONSENTGUARD_BASE_URL`)
+4. Optionally enter an override URL (leave blank to use `NOTICEIFY_BASE_URL`)
 5. Click **Run workflow**
 
 ## Schedule

@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — consent-storage.js
+ * Noticeify — consent-storage.js
  *
  * Handles reading, writing, and versioning of consent records in the browser.
  * All consent state lives in a single JSON cookie so it survives page loads
@@ -7,12 +7,12 @@
  * localStorage as a fallback for SPA environments that clear cookies on
  * certain routes.
  *
- * Cookie name:  cg_consent
- * localStorage: cg_consent
+ * Cookie name:  nfy_consent
+ * localStorage: nfy_consent
  */
 
-const COOKIE_NAME   = 'cg_consent';
-const STORAGE_KEY   = 'cg_consent';
+const COOKIE_NAME   = 'nfy_consent';
+const STORAGE_KEY   = 'nfy_consent';
 const CONSENT_VERSION = '1.0'; // bump when banner copy or category set changes
 
 /**
@@ -20,7 +20,7 @@ const CONSENT_VERSION = '1.0'; // bump when banner copy or category set changes
  *
  * {
  *   version:    string        — consent schema version (bump = re-prompt)
- *   clientId:   string        — which ConsentGuard client this belongs to
+ *   clientId:   string        — which Noticeify client this belongs to
  *   consentId:  string        — UUID for this specific consent event
  *   timestamp:  string        — ISO 8601
  *   source:     string        — 'banner' | 'preference_center' | 'gpc' | 'api'
@@ -42,7 +42,7 @@ const CONSENT_VERSION = '1.0'; // bump when banner copy or category set changes
 
 function generateConsentId() {
   // Generates a short UUID-like ID without crypto dependency
-  return 'cg_' + Date.now().toString(36) + '_' +
+  return 'nfy_' + Date.now().toString(36) + '_' +
     Math.random().toString(36).slice(2, 8);
 }
 

@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — gtm-consent-config.js
+ * Noticeify — gtm-consent-config.js
  *
  * This file is NOT injected into the page. It is a reference document
  * for configuring Google Tag Manager so that all tags inside GTM respect
@@ -33,9 +33,9 @@
  *     gtag('set', 'ads_data_redaction', true);
  *   </script>
  *
- * NOTE: ConsentGuard's consent-loader.js also sets these defaults via the
+ * NOTE: Noticeify's consent-loader.js also sets these defaults via the
  * gtag shim. The GTM tag is a belt-and-suspenders fallback for environments
- * where the ConsentGuard script somehow loads after GTM (should not happen
+ * where the Noticeify script somehow loads after GTM (should not happen
  * if the embed tag is placed first in <head>, but this protects you).
  *
  *
@@ -52,7 +52,7 @@
  * Create a Custom JavaScript Variable called "CG - Has Analytics Consent":
  *
  *   function() {
- *     return window.ConsentManager && window.ConsentManager.hasConsent('analytics');
+ *     return window.Noticeify && window.Noticeify.hasConsent('analytics');
  *   }
  *
  * Create similar variables for each category:
@@ -69,10 +69,10 @@
  * base code via GTM instead of vendor-registry.js), use:
  *
  *   Trigger type: Custom Event
- *   Event name:   cg_consent_update
+ *   Event name:   nfy_consent_update
  *   Condition:    CG - Has Marketing Consent equals true
  *
- * ConsentGuard fires a 'cg_consent_update' dataLayer event after every
+ * Noticeify fires a 'nfy_consent_update' dataLayer event after every
  * consent change (see the pushConsentEvent() call in consent-loader.js).
  * This lets GTM-managed tags also react to consent changes.
  *
@@ -88,7 +88,7 @@
  * This means even if a tag trigger fires, Google's own Consent Mode check
  * will suppress the cookie/measurement behavior if the signal is denied.
  * Consent Mode v2 gives you two layers of protection:
- *   Layer 1: ConsentGuard prevents the tag from loading at all
+ *   Layer 1: Noticeify prevents the tag from loading at all
  *   Layer 2: Google's Consent Mode prevents the tag from measuring if it
  *            somehow gets past layer 1 (defense in depth)
  *
@@ -106,19 +106,19 @@
  * into vendor-registry.js (it's already there). Remove the GTM tag.
  *
  *
- * 6. DATALAYER EVENTS FIRED BY CONSENTGUARD
+ * 6. DATALAYER EVENTS FIRED BY NOTICEIFY
  * ───────────────────────────────────────────
- * ConsentGuard pushes these events to dataLayer so GTM can react:
+ * Noticeify pushes these events to dataLayer so GTM can react:
  *
- *   cg_consent_update — fires after any consent change
+ *   nfy_consent_update — fires after any consent change
  *     payload: { consentCategories: { analytics, marketing, ... } }
  *
- *   cg_consent_loaded — fires on page load when stored consent is found
+ *   nfy_consent_loaded — fires on page load when stored consent is found
  *     payload: { consentCategories: { ... } }
  *
- *   cg_banner_shown   — fires when the banner is displayed
+ *   nfy_banner_shown   — fires when the banner is displayed
  *
- *   cg_gpc_detected   — fires when a GPC signal is found
+ *   nfy_gpc_detected   — fires when a GPC signal is found
  *
  * You can use these as GTM trigger events.
  */

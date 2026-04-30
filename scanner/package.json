@@ -1,7 +1,7 @@
 {
-  "name": "consentguard-scanner",
+  "name": "noticeify-scanner",
   "version": "1.0.0",
-  "description": "ConsentGuard pre-consent pixel and cookie scanner",
+  "description": "Noticeify pre-consent pixel and cookie scanner",
   "type": "module",
   "main": "core/site-crawler.js",
   "scripts": {

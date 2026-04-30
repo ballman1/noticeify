@@ -1,5 +1,5 @@
 -- =============================================================================
--- ConsentGuard — Migration 002: Trigger + analytics views
+-- Noticeify — Migration 002: Trigger + analytics views
 -- =============================================================================
 
 BEGIN;

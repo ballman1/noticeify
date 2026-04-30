@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — db/pool.js
+ * Noticeify — db/pool.js
  *
  * PostgreSQL connection pool using node-postgres (pg).
  * All queries go through this module — never create ad-hoc Pool instances.
@@ -124,7 +124,7 @@ async function withTransaction(fn) {
  * Use SET LOCAL so the setting is scoped to the current transaction/statement.
  *
  * @param {pg.Client} client
- * @param {string}    clientId — UUID of the ConsentGuard client
+ * @param {string}    clientId — UUID of the Noticeify client
  */
 async function setClientContext(client, clientId) {
   await client.query('SET LOCAL app.current_client_id = $1', [clientId]);

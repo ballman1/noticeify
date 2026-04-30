@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — vendor-registry.js
+ * Noticeify — vendor-registry.js
  *
  * The vendor registry is the single source of truth for every third-party
  * script on the site. NO third-party script should be hardcoded into the
@@ -10,7 +10,7 @@
  * {
  *   id:          string    — unique key, used for logging
  *   name:        string    — human-readable name (shown in dashboard)
- *   category:    string    — must match a ConsentGuard category key
+ *   category:    string    — must match a Noticeify category key
  *   src:         string?   — script URL to inject (if script tag needed)
  *   async:       boolean?  — whether to set async on the injected script
  *   load:        function? — custom loader fn (for vendors needing inline init)
@@ -58,7 +58,7 @@ const VENDOR_REGISTRY = [
     id:           'gtm',
     name:         'Google Tag Manager',
     category:     'essential',
-    // GTM itself is essential but its TAGS are not. ConsentGuard loads GTM
+    // GTM itself is essential but its TAGS are not. Noticeify loads GTM
     // after setting Consent Mode defaults so all tags inside GTM respect
     // the consent signals. Tags inside GTM should be configured with
     // consent checks (see gtm-consent-config.js for required GTM setup).
@@ -100,7 +100,7 @@ const VENDOR_REGISTRY = [
     // GA4 is loaded via GTM using Consent Mode. When analytics_storage is
     // granted, GTM fires the GA4 tag. When denied, GTM fires in cookieless
     // modeling mode. This entry exists to document the vendor and give
-    // ConsentGuard a hook to update Consent Mode signals correctly.
+    // Noticeify a hook to update Consent Mode signals correctly.
     // The actual script injection is handled by GTM — no src needed here.
     load: null,
     cookies:     ['_ga', '_ga_XXXXXXXXXX'],

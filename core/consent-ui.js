@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — consent-ui.js
+ * Noticeify — consent-ui.js
  *
  * Lazily loaded by consent-loader.js only when the banner needs to be shown
  * (i.e. first-time visitors with no stored consent). Returning users who

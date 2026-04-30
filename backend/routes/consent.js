@@ -1,5 +1,5 @@
 /**
- * ConsentGuard — routes/consent.js
+ * Noticeify — routes/consent.js
  *
  * POST /api/v1/consent
  *   Receives consent events from consent-logger.js (client-side).

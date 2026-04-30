@@ -1,5 +1,5 @@
 /**
- * ConsentGuard Scanner — reporters/scan-reporter.js
+ * Noticeify Scanner — reporters/scan-reporter.js
  *
  * Takes a ScanReport from site-crawler.js and produces:
  *   - A structured JSON payload for the dashboard API
@@ -128,7 +128,7 @@ function generateRecommendations(report) {
       title:       `${v.vendorName} is firing before consent`,
       description: `${v.vendorName} was detected sending network requests before a consent ` +
                    `choice was recorded. This may violate CCPA and other privacy regulations. ` +
-                   `Move this vendor into the ConsentGuard vendor registry and remove any ` +
+                   `Move this vendor into the Noticeify vendor registry and remove any ` +
                    `hardcoded or GTM tags that load it unconditionally.`,
       pageUrls:    v.pageUrls,
       action:      'Move to vendor-registry.js with category "marketing". Remove direct GTM tag.',
@@ -146,7 +146,7 @@ function generateRecommendations(report) {
       vendorName:  v.vendorName,
       title:       `${v.vendorName} loading before consent`,
       description: `${v.vendorName} was detected loading before a consent decision. ` +
-                   `Ensure it is loaded only via the ConsentGuard vendor registry ` +
+                   `Ensure it is loaded only via the Noticeify vendor registry ` +
                    `after the user grants the "${v.category}" category.`,
       pageUrls:    v.pageUrls,
       action:      `Gate via ConsentManager.hasConsent('${v.category || 'analytics'}') ` +
@@ -180,7 +180,7 @@ function generateRecommendations(report) {
       type:        'unclassified_vendors',
       title:       `${report.unclassifiedVendors} unclassified third-party script(s) detected`,
       description: `The following scripts are loaded from external domains that are not in ` +
-                   `the ConsentGuard vendor registry: ${unclassified.map(v => v.hostname).join(', ')}. ` +
+                   `the Noticeify vendor registry: ${unclassified.map(v => v.hostname).join(', ')}. ` +
                    `Classify each one and add it to vendor-registry.js with the appropriate category.`,
       domains:     unclassified.map(v => v.hostname),
       action:      'Add each domain to vendor-registry.js with correct category and purpose.',
@@ -241,7 +241,7 @@ function formatTextSummary(report, meta = {}) {
   const lines = [];
   const sep   = '─'.repeat(60);
 
-  lines.push('ConsentGuard Scan Report');
+  lines.push('Noticeify Scan Report');
   lines.push(sep);
   lines.push(`Site:         ${meta.baseUrl || 'unknown'}`);
   lines.push(`Scanned at:   ${report.generatedAt}`);

@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * ConsentGuard Scanner — scripts/run-scan.js
+ * Noticeify Scanner — scripts/run-scan.js
  *
  * Entry point for GitHub Actions (and CLI use).
  * Reads config from environment variables, runs the site scan,
- * posts results to the ConsentGuard API, writes artifacts to disk,
+ * posts results to the Noticeify API, writes artifacts to disk,
  * and sets GitHub Actions output variables for downstream steps.
  *
  * Environment variables (set as GitHub Actions secrets):
- *   CONSENTGUARD_API_URL    — e.g. https://your-api.vercel.app
- *   CONSENTGUARD_API_KEY    — API key with scanner:run + scanner:read scopes
- *   CONSENTGUARD_CLIENT_ID  — UUID of the client to scan
- *   CONSENTGUARD_CLIENT_DOMAIN — e.g. 39dollarglasses.com
+ *   NOTICEIFY_API_URL    — e.g. https://your-api.vercel.app
+ *   NOTICEIFY_API_KEY    — API key with scanner:run + scanner:read scopes
+ *   NOTICEIFY_CLIENT_ID  — UUID of the client to scan
+ *   NOTICEIFY_CLIENT_DOMAIN — e.g. 39dollarglasses.com
  *   TARGET_URL              — e.g. https://www.39dollarglasses.com
  *   SCAN_RUN_ID             — pre-created scan run ID from the API (optional)
  *
@@ -36,10 +36,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Config from environment
 // ---------------------------------------------------------------------------
 
-const API_URL     = process.env.CONSENTGUARD_API_URL    || '';
-const API_KEY     = process.env.CONSENTGUARD_API_KEY    || '';
-const CLIENT_ID   = process.env.CONSENTGUARD_CLIENT_ID  || '';
-const DOMAIN      = process.env.CONSENTGUARD_CLIENT_DOMAIN || '';
+const API_URL     = process.env.NOTICEIFY_API_URL    || '';
+const API_KEY     = process.env.NOTICEIFY_API_KEY    || '';
+const CLIENT_ID   = process.env.NOTICEIFY_CLIENT_ID  || '';
+const DOMAIN      = process.env.NOTICEIFY_CLIENT_DOMAIN || '';
 const TARGET_URL  = process.env.TARGET_URL || (DOMAIN ? `https://www.${DOMAIN}` : '');
 const SCAN_RUN_ID = process.env.SCAN_RUN_ID || null;
 
@@ -96,7 +96,7 @@ function writeReportArtifacts(report, payload) {
 }
 
 // ---------------------------------------------------------------------------
-// Post results to ConsentGuard API
+// Post results to Noticeify API
 // ---------------------------------------------------------------------------
 
 async function postResultsToApi(scanRunId, payload) {
@@ -146,7 +146,7 @@ function buildMarkdownSummary(payload, baseUrl) {
   }[s.overallStatus] || '⚪';
 
   const lines = [
-    `## ${statusEmoji} ConsentGuard Scan — ${s.statusLabel}`,
+    `## ${statusEmoji} Noticeify Scan — ${s.statusLabel}`,
     `**Site:** ${baseUrl}  `,
     `**Scanned at:** ${payload.meta.generatedAt}  `,
     `**Pages scanned:** ${payload.meta.pagesScanned}  `,
@@ -192,7 +192,7 @@ function buildMarkdownSummary(payload, baseUrl) {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  console.log('=== ConsentGuard Scanner ===');
+  console.log('=== Noticeify Scanner ===');
   console.log(`Target:    ${TARGET_URL}`);
   console.log(`Client:    ${CLIENT_ID}`);
   console.log(`Domain:    ${DOMAIN}`);
@@ -200,7 +200,7 @@ async function main() {
   console.log('');
 
   if (!TARGET_URL) {
-    console.error('[Error] TARGET_URL is required. Set CONSENTGUARD_BASE_URL secret or pass target_url input.');
+    console.error('[Error] TARGET_URL is required. Set NOTICEIFY_BASE_URL secret or pass target_url input.');
     process.exit(1);
   }
 
