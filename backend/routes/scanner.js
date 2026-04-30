@@ -21,8 +21,6 @@ import { Router }     from 'express';
 import crypto         from 'crypto';
 import { query, withClient, setClientContext } from '../db/pool.js';
 import { requireAuth }                         from '../middleware/auth.js';
-import { runSiteScan }                         from '../../scanner/core/site-crawler.js';
-import { formatDashboardPayload, formatTextSummary } from '../../scanner/reporters/scan-reporter.js';
 
 const router = Router();
 
@@ -83,11 +81,19 @@ router.post(
     });
 
     // Run scan in background (fire and forget)
-    // In production, push to a job queue (BullMQ, pg-boss) instead of setImmediate
+    // Scanner modules are dynamically imported here so Vercel never bundles
+    // Playwright at startup — it's only loaded when a scan is actually triggered
+    // (which happens via GitHub Actions, not via Vercel's serverless runtime).
     setImmediate(async () => {
       const startTime = Date.now();
       try {
         const baseUrl = `https://${client.domain}`;
+
+        // Dynamic imports — keeps Playwright out of Vercel's module graph
+        const { runSiteScan } = await import('../../scanner/core/site-crawler.js');
+        const { formatDashboardPayload, formatTextSummary } =
+          await import('../../scanner/reporters/scan-reporter.js');
+
         const report  = await runSiteScan({
           clientId,
           scanRunId,
