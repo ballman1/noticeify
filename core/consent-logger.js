@@ -22,7 +22,7 @@
 // Config
 // ---------------------------------------------------------------------------
 
-const API_ENDPOINT     = 'https://api.noticeify.com/v1/consent';
+const API_ENDPOINT     = 'https://noticeify-w39k.vercel.app/api/v1/consent';
 const RETRY_QUEUE_KEY  = 'nfy_log_queue';
 const SENT_IDS_KEY     = 'nfy_sent_ids';
 const MAX_RETRY_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
