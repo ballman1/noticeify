@@ -1,762 +1,703 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Noticeify — Privacy Consent Platform</title>
-  <meta name="description" content="Stop tracking your customers before they say yes. Noticeify blocks advertising pixels and third-party trackers until your visitor gives affirmative consent." />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:           #ffffff;
-      --bg-secondary: #f8f8f6;
-      --bg-tertiary:  #f2f0eb;
-      --text:         #111111;
-      --text-secondary: #555550;
-      --text-tertiary:  #999990;
-      --border:       rgba(0,0,0,0.10);
-      --border-md:    rgba(0,0,0,0.18);
-      --green:        #1a6b4a;
-      --green-light:  #e6f4ef;
-      --green-dark:   #0d4a33;
-      --blue:         #185fa5;
-      --blue-light:   #e6f1fb;
-      --warn:         #c45b00;
-      --warn-light:   #fff3e6;
-      --danger:       #a32d2d;
-      --danger-light: #fcebeb;
-      --radius-md:    8px;
-      --radius-lg:    12px;
-      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:           #1a1a18;
-        --bg-secondary: #222220;
-        --bg-tertiary:  #2a2a28;
-        --text:         #f0efe8;
-        --text-secondary: #aaa9a0;
-        --text-tertiary:  #666660;
-        --border:       rgba(255,255,255,0.10);
-        --border-md:    rgba(255,255,255,0.18);
-        --green-light:  #0d2e1f;
-        --green-dark:   #9fd4bc;
-        --blue-light:   #0c1e35;
-        --warn-light:   #2a1a00;
-        --danger-light: #2a0d0d;
-      }
-    }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg-tertiary);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    /* ── Nav ── */
-    .nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 13px 28px;
-      background: var(--bg);
-      border-bottom: 0.5px solid var(--border);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 15px; color: var(--text); text-decoration: none; }
-    .logo-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .logo-mark svg { width: 15px; height: 15px; }
-    .nav-links { display: flex; gap: 6px; }
-    .nav-link {
-      padding: 6px 14px; border-radius: var(--radius-md); border: none;
-      background: none; font-size: 13px; cursor: pointer; color: var(--text-secondary);
-      font-family: var(--font); transition: background .15s, color .15s;
-    }
-    .nav-link:hover { background: var(--bg-secondary); color: var(--text); }
-    .nav-link.active { background: var(--bg-secondary); color: var(--text); font-weight: 500; }
-    .nav-cta { display: flex; gap: 8px; }
-    .btn {
-      padding: 7px 16px; border-radius: var(--radius-md); font-size: 13px;
-      cursor: pointer; border: 0.5px solid var(--border-md); background: none;
-      color: var(--text); font-family: var(--font); transition: background .15s;
-    }
-    .btn:hover { background: var(--bg-secondary); }
-    .btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
-    .btn-primary:hover { background: #14532d; border-color: #14532d; }
-    .btn-sm { padding: 5px 12px; font-size: 12px; }
-
-    /* ── Page wrapper ── */
-    .page { display: none; }
-    .page.active { display: block; }
-
-    /* ── Section ── */
-    .section { padding: 48px 28px; max-width: 720px; margin: 0 auto; }
-    .section-label { font-size: 11px; font-weight: 500; color: var(--green); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-    .section h2 { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
-    .section-sub { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; }
-
-    /* ── Hero ── */
-    .hero { padding: 72px 28px 56px; text-align: center; max-width: 680px; margin: 0 auto; }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 14px; border-radius: 20px;
-      background: var(--green-light); color: var(--green-dark);
-      font-size: 12px; font-weight: 500; margin-bottom: 20px;
-    }
-    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-    .hero h1 { font-size: 36px; font-weight: 500; line-height: 1.2; margin-bottom: 16px; }
-    .hero h1 em { font-style: normal; color: var(--green); }
-    .hero p { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
-    .hero-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
-    .code-block {
-      background: var(--bg-secondary); border-radius: var(--radius-lg);
-      padding: 14px 18px; text-align: left;
-      font-size: 12px; font-family: var(--mono);
-      color: var(--text-secondary); border: 0.5px solid var(--border);
-      max-width: 460px; margin: 0 auto; line-height: 1.9;
-    }
-    .code-tag { color: var(--green); }
-    .code-attr { color: var(--blue); }
-    .code-val { color: var(--warn); }
-
-    /* ── Cards ── */
-    .card {
-      background: var(--bg); border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg); padding: 16px 18px;
-    }
-    .card-title { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
-
-    /* ── Metrics ── */
-    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-    .metric { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 14px 16px; }
-    .metric-val { font-size: 26px; font-weight: 500; margin-bottom: 3px; }
-    .metric-val.green { color: var(--green); }
-    .metric-val.warn  { color: var(--warn); }
-    .metric-val.danger{ color: var(--danger); }
-    .metric-label { font-size: 11px; color: var(--text-secondary); }
-
-    /* ── Findings ── */
-    .finding {
-      background: var(--bg); border: 0.5px solid var(--border);
-      border-radius: var(--radius-md); padding: 11px 14px;
-      display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px;
-    }
-    .risk-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; margin-top: 1px; white-space: nowrap; }
-    .r-critical { background: var(--danger-light); color: var(--danger); }
-    .r-high     { background: var(--warn-light);   color: var(--warn); }
-    .r-moderate { background: var(--warn-light);   color: #7a3a00; }
-    .r-low      { background: var(--green-light);  color: var(--green-dark); }
-    .finding-title { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
-    .finding-url   { font-size: 11px; color: var(--text-tertiary); font-family: var(--mono); }
-
-    /* ── Features grid ── */
-    .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .feature { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
-    .feature-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-    .feature h3 { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
-    .feature p  { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
-
-    /* ── Banner preview ── */
-    .banner-preview {
-      background: var(--bg); border: 0.5px solid var(--border-md);
-      border-radius: var(--radius-lg); padding: 18px 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    }
-    .banner-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .banner-icon { width: 18px; height: 18px; border-radius: 5px; background: var(--green-light); display: flex; align-items: center; justify-content: center; }
-    .banner-title { font-size: 13px; font-weight: 500; }
-    .banner-body  { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
-    .banner-links { font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .banner-links a { color: var(--blue); text-decoration: none; }
-    .banner-links a:hover { text-decoration: underline; }
-    .banner-btns  { display: flex; gap: 7px; flex-wrap: wrap; }
-
-    /* ── Preference center ── */
-    .pref-modal { background: var(--bg); border: 0.5px solid var(--border-md); border-radius: var(--radius-lg); overflow: hidden; }
-    .pref-header { padding: 16px 18px; border-bottom: 0.5px solid var(--border); }
-    .pref-title  { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
-    .pref-sub    { font-size: 11px; color: var(--text-secondary); }
-    .pref-row { display: flex; align-items: flex-start; gap: 14px; padding: 13px 18px; border-bottom: 0.5px solid var(--border); }
-    .pref-row:last-child { border-bottom: none; }
-    .pref-info { flex: 1; min-width: 0; }
-    .pref-name { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
-    .pref-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
-    .pref-vendors { font-size: 10px; color: var(--text-tertiary); margin-top: 4px; }
-    .always-on { font-size: 11px; font-weight: 500; color: var(--green); flex-shrink: 0; padding-top: 2px; }
-    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; margin-top: 1px; cursor: pointer; }
-    .toggle input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1; margin: 0; }
-    .toggle-track { position: absolute; inset: 0; background: var(--border-md); border-radius: 11px; transition: background .2s; }
-    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform .2s; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-    .toggle input:checked ~ .toggle-track { background: var(--green); }
-    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
-    .toggle input:focus-visible ~ .toggle-track { outline: 2px solid var(--blue); outline-offset: 2px; }
-    .pref-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px; background: var(--bg-secondary); border-top: 0.5px solid var(--border); }
-    .pref-footer-links { font-size: 11px; color: var(--text-tertiary); display: flex; gap: 8px; }
-    .pref-footer-links a { color: var(--blue); text-decoration: none; }
-    .pref-footer-btns { display: flex; gap: 8px; }
-
-    /* ── Consent log ── */
-    .log-row { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 0.5px solid var(--border); font-size: 12px; }
-    .log-row:last-child { border-bottom: none; }
-    .log-time { color: var(--text-tertiary); width: 52px; flex-shrink: 0; }
-    .log-event { flex: 1; color: var(--text-secondary); }
-    .log-page { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
-    .log-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; white-space: nowrap; }
-    .badge-accept { background: var(--green-light); color: var(--green-dark); }
-    .badge-reject { background: var(--danger-light); color: var(--danger); }
-    .badge-gpc    { background: var(--blue-light); color: #042c53; }
-    .badge-custom { background: var(--bg-secondary); color: var(--text-secondary); }
-
-    /* ── Status bar ── */
-    .status-bar {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; background: var(--warn-light);
-      border: 0.5px solid #f0a060; border-radius: var(--radius-md);
-      margin-bottom: 16px; font-size: 12px; color: var(--warn);
-    }
-    .status-bar strong { font-weight: 500; flex: 1; }
-
-    /* ── Tabs ── */
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 0.5px solid var(--border); padding-bottom: 0; }
-    .tab-btn {
-      padding: 7px 16px; border: none; background: none; font-size: 13px;
-      cursor: pointer; color: var(--text-secondary); font-family: var(--font);
-      border-bottom: 2px solid transparent; margin-bottom: -0.5px;
-      transition: color .15s, border-color .15s;
-    }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--text); font-weight: 500; border-bottom-color: var(--green); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* ── Pricing ── */
-    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .plan { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
-    .plan.featured { border: 1.5px solid var(--green); }
-    .plan-badge { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); margin-bottom: 10px; }
-    .plan-name  { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
-    .plan-price { font-size: 28px; font-weight: 500; margin-bottom: 4px; }
-    .plan-price span { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
-    .plan-desc  { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5; }
-    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
-    .plan-features li { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 7px; }
-    .check { width: 15px; height: 15px; border-radius: 50%; background: var(--green-light); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .check svg { width: 8px; height: 8px; }
-
-    /* ── Docs ── */
-    .doc-step { display: flex; gap: 14px; align-items: flex-start; }
-    .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--green-dark); flex-shrink: 0; }
-
-    /* ── Footer ── */
-    footer { padding: 20px 28px; border-top: 0.5px solid var(--border); background: var(--bg); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-tertiary); }
-    .footer-logo { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--text); }
-
-    /* ── Scanner ── */
-    .scan-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-
-    /* ── GCM status ── */
-    .gcm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-    .gcm-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 8px 10px; }
-    .gcm-key { font-size: 10px; color: var(--text-tertiary); font-family: var(--mono); margin-bottom: 3px; }
-    .gcm-val { font-size: 12px; font-weight: 500; }
-    .gcm-denied  { color: var(--danger); }
-    .gcm-granted { color: var(--green); }
-
-    @media (max-width: 600px) {
-      .pricing { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr; }
-      .metrics  { grid-template-columns: repeat(2, 1fr); }
-      .scan-grid { grid-template-columns: repeat(2, 1fr); }
-      .gcm-grid { grid-template-columns: repeat(2, 1fr); }
-      .nav-links { display: none; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Noticeify — Cookie Consent & Privacy Compliance Platform</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#fff;--bg2:#f8f8f6;--bg3:#f2f0eb;
+--text:#111;--text2:#555;--text3:#999;
+--border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.16);
+--green:#1a6b4a;--green-l:#e6f4ef;--green-d:#0d4a33;
+--blue:#185fa5;--blue-l:#e6f1fb;
+--warn:#c45b00;--warn-l:#fff3e6;
+--danger:#a32d2d;--danger-l:#fcebeb;
+--r:8px;--rl:12px;
+--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+--mono:'SF Mono','Fira Code',monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+--bg:#1a1a18;--bg2:#222220;--bg3:#2a2a28;
+--text:#f0efe8;--text2:#aaa9a0;--text3:#666660;
+--border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.16);
+--green-l:#0d2e1f;--green-d:#9fd4bc;--blue-l:#0c1e35;--warn-l:#2a1a00;--danger-l:#2a0d0d;
+}}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);font-size:14px;line-height:1.6}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:11px 24px;background:var(--bg);border-bottom:.5px solid var(--border);position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:8px;font-weight:500;font-size:15px;color:var(--text);cursor:pointer}
+.lm{width:27px;height:27px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lm svg{width:14px;height:14px}
+.nav-links{display:flex;gap:2px}
+.nb{padding:6px 13px;border-radius:var(--r);border:none;background:none;font-size:13px;cursor:pointer;color:var(--text2);font-family:var(--font);transition:background .12s,color .12s}
+.nb:hover{background:var(--bg2);color:var(--text)}
+.nb.active{background:var(--bg2);color:var(--text);font-weight:500}
+.nav-cta{display:flex;gap:8px}
+.btn{padding:7px 15px;border-radius:var(--r);font-size:13px;cursor:pointer;border:.5px solid var(--border2);background:none;color:var(--text);font-family:var(--font);transition:background .12s}
+.btn:hover{background:var(--bg2)}
+.btn-p{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-p:hover{background:#14532d}
+.btn-s{padding:5px 11px;font-size:12px}
+.pg{display:none}.pg.active{display:block}
+.shell{display:flex;min-height:calc(100vh - 45px)}
+.sb{width:198px;flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);padding:10px 8px}
+.sb-sec{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:10px 8px 4px}
+.sbb{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);border:none;background:none;font-size:13px;cursor:pointer;color:var(--text2);font-family:var(--font);width:100%;text-align:left;transition:background .12s,color .12s}
+.sbb:hover{background:var(--bg2);color:var(--text)}
+.sbb.active{background:var(--green-l);color:var(--green-d);font-weight:500}
+.sbb svg{width:15px;height:15px;flex-shrink:0;opacity:.55}
+.sbb.active svg{opacity:1}
+.ac{flex:1;min-width:0;padding:22px;overflow-y:auto}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:16px 18px}
+.ct{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.metric{background:var(--bg2);border-radius:var(--r);padding:12px 14px}
+.mv{font-size:24px;font-weight:500;margin-bottom:2px}
+.mv.g{color:var(--green)}.mv.w{color:var(--warn)}.mv.d{color:var(--danger)}
+.ml{font-size:11px;color:var(--text2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.bg{background:var(--green-l);color:var(--green-d)}
+.bb{background:var(--blue-l);color:#042c53}
+.bw{background:var(--warn-l);color:#7a3a00}
+.bd{background:var(--danger-l);color:var(--danger)}
+.bx{background:var(--bg2);color:var(--text2)}
+.tabs{display:flex;gap:2px;border-bottom:.5px solid var(--border);margin-bottom:16px}
+.tab{padding:7px 15px;border:none;background:none;font-size:13px;cursor:pointer;color:var(--text2);font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-.5px;transition:color .12s,border-color .12s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);font-weight:500;border-bottom-color:var(--green)}
+.tp{display:none}.tp.active{display:block}
+.finding{background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);padding:11px 13px;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.risk{font-size:11px;font-weight:500;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px}
+.rc{background:var(--danger-l);color:var(--danger)}
+.rh{background:var(--warn-l);color:var(--warn)}
+.rm{background:var(--warn-l);color:#7a3a00}
+.rl{background:var(--green-l);color:var(--green-d)}
+.ft{font-size:12px;font-weight:500;margin-bottom:3px}
+.fd{font-size:11px;color:var(--text2);margin-bottom:3px;line-height:1.5}
+.fu{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer;display:inline-block}
+.toggle input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;z-index:1;margin:0}
+.tt{position:absolute;inset:0;background:var(--border2);border-radius:11px;transition:background .2s}
+.th{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked~.tt{background:var(--green)}
+.toggle input:checked~.th{transform:translateX(18px)}
+.pr{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:.5px solid var(--border)}
+.pr:last-child{border-bottom:none}
+.pi{flex:1}
+.pn{font-size:12px;font-weight:500;margin-bottom:3px}
+.pd{font-size:11px;color:var(--text2);line-height:1.5}
+.pv{font-size:10px;color:var(--text3);margin-top:3px}
+.ao{font-size:11px;font-weight:500;color:var(--green);flex-shrink:0;padding-top:2px}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.lrow:last-child{border-bottom:none}
+.lt{color:var(--text3);width:50px;flex-shrink:0;font-family:var(--mono)}
+.le{flex:1;color:var(--text2)}
+.lp{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.ct-table{width:100%;border-collapse:collapse;font-size:12px}
+.ct-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:.5px solid var(--border);background:var(--bg2)}
+.ct-table td{padding:9px 12px;border-bottom:.5px solid var(--border);vertical-align:top}
+.ct-table tr:last-child td{border-bottom:none}
+.ct-table tr:hover td{background:var(--bg2)}
+.sr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:.5px solid var(--border)}
+.sr:last-child{border-bottom:none}
+.si{flex:1}
+.sl{font-size:13px;font-weight:500;margin-bottom:3px}
+.sd{font-size:12px;color:var(--text2);line-height:1.5}
+.sa{flex-shrink:0}
+.gcm{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.gi{background:var(--bg2);border-radius:var(--r);padding:8px 10px}
+.gk{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:3px}
+.gv{font-size:12px;font-weight:500}
+.granted{color:var(--green)}.denied{color:var(--danger)}
+.notif{padding:10px 14px;border-radius:var(--r);font-size:12px;margin-bottom:12px}
+.ns{background:var(--green-l);color:var(--green-d);border:.5px solid rgba(26,107,74,.2)}
+.nw{background:var(--warn-l);color:var(--warn);border:.5px solid rgba(196,91,0,.2)}
+.code{background:var(--bg2);border-radius:var(--r);padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--text2);border:.5px solid var(--border);line-height:1.8;overflow-x:auto}
+.ct2{color:var(--green)}.ca{color:var(--blue)}.cv{color:var(--warn)}
+.hero{padding:64px 24px 48px;text-align:center;max-width:660px;margin:0 auto}
+.hb{display:inline-flex;align-items:center;gap:6px;padding:4px 13px;border-radius:20px;background:var(--green-l);color:var(--green-d);font-size:12px;font-weight:500;margin-bottom:18px}
+.hbd{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.hero h1{font-size:34px;font-weight:500;line-height:1.2;margin-bottom:14px}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero p{font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:26px;max-width:460px;margin-left:auto;margin-right:auto}
+.hbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.feat{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:16px}
+.fi{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.feat h3{font-size:13px;font-weight:500;margin-bottom:4px}
+.feat p{font-size:12px;color:var(--text2);line-height:1.55}
+.sw{padding:38px 24px;max-width:720px;margin:0 auto}
+.sl2{font-size:11px;font-weight:500;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plan{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:20px}
+.plan.feat2{border:1.5px solid var(--green)}
+.pbadge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:10px;background:var(--green-l);color:var(--green-d);margin-bottom:10px}
+.pn2{font-size:13px;font-weight:500;margin-bottom:4px}
+.pp{font-size:28px;font-weight:500;margin-bottom:4px}
+.pp span{font-size:13px;font-weight:400;color:var(--text2)}
+.pd2{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5}
+.pf{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.pf li{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:7px}
+.cc{width:15px;height:15px;border-radius:50%;background:var(--green-l);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.cc svg{width:8px;height:8px}
+.bb-wrap{display:grid;grid-template-columns:240px 1fr;min-height:380px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.bb-left{border-right:.5px solid var(--border);padding:12px;overflow-y:auto}
+.bb-right{background:var(--bg2);padding:14px;display:flex;flex-direction:column;justify-content:flex-end}
+.bbs{border-bottom:.5px solid var(--border);margin-bottom:2px}
+.bbst{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:500;padding:8px 2px;cursor:pointer}
+.bbb{padding:6px 0;display:none}
+.bbs.open .bbb{display:block}
+.bbl{font-size:11px;color:var(--text2);margin-bottom:4px;display:block}
+.bbi{width:100%;padding:6px 8px;border:.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:var(--font);background:var(--bg);color:var(--text);margin-bottom:8px}
+.bmock{flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.bmc{height:8px;background:var(--bg3);border-radius:4px}
+.bmh{height:50px;background:var(--bg3);border-radius:var(--r)}
+.bmg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bmc2{height:35px;background:var(--bg3);border-radius:var(--r)}
+footer{padding:16px 24px;border-top:.5px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3)}
+.fl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--text)}
+@media(max-width:640px){.sb{display:none}.g2,.g3{grid-template-columns:1fr}.gcm{grid-template-columns:repeat(2,1fr)}.nav-links{display:none}}
+</style>
 </head>
 <body>
 
-<!-- ── Navigation ── -->
 <nav class="nav">
-  <a class="nav-logo" href="#" onclick="showPage('home')">
-    <div class="logo-mark">
-      <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 5.5v3.5M6 7.5h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>
-    </div>
+  <div class="logo" onclick="gp('home')">
+    <div class="lm"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 5.5v3.5M6 7.5h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg></div>
     Noticeify
-  </a>
+  </div>
   <div class="nav-links">
-    <button class="nav-link" onclick="showPage('tools')">Dashboard</button>
-    <button class="nav-link" onclick="showPage('scanner')">Scanner</button>
-    <button class="nav-link" onclick="showPage('pricing')">Pricing</button>
-    <button class="nav-link" onclick="showPage('docs')">Docs</button>
+    <button class="nb" onclick="gp('home')">Home</button>
+    <button class="nb" onclick="gp('app')">Dashboard</button>
+    <button class="nb" onclick="gp('pricing')">Pricing</button>
+    <button class="nb" onclick="gp('docs')">Docs</button>
   </div>
   <div class="nav-cta">
-    <button class="btn" onclick="showPage('tools')">Sign in</button>
-    <button class="btn btn-primary" onclick="showPage('tools')">Get started</button>
+    <button class="btn" onclick="gp('app')">Sign in</button>
+    <button class="btn btn-p" onclick="gp('app')">Get started free</button>
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════
-     HOME
-════════════════════════════════════════════════ -->
-<div id="page-home" class="page active">
-
+<!-- HOME -->
+<div id="page-home" class="pg active">
   <div class="hero">
-    <div class="hero-badge"><div class="hero-badge-dot"></div>Privacy compliance for e-commerce</div>
-    <h1>Stop tracking your customers<br>before they <em>say yes</em></h1>
-    <p>Noticeify blocks advertising pixels, analytics scripts, and third-party trackers until your visitor gives affirmative consent — and proves it with a timestamped audit trail.</p>
-    <div class="hero-btns">
-      <button class="btn btn-primary" onclick="showPage('tools')">View dashboard</button>
-      <button class="btn" onclick="showPage('scanner')">Run a free scan</button>
+    <div class="hb"><div class="hbd"></div>CCPA, GDPR &amp; US State Laws</div>
+    <h1>Cookie consent that <em>actually blocks</em> tracking</h1>
+    <p>Noticeify displays a compliant consent banner, blocks non-essential pixels until consent is given, logs every decision, and proves compliance — from one lightweight embed tag.</p>
+    <div class="hbtns">
+      <button class="btn btn-p" onclick="gp('app')">Start for free</button>
+      <button class="btn" onclick="gp('pricing')">View pricing</button>
     </div>
-    <div class="code-block">
-      &lt;<span class="code-tag">script</span><br>
-      &nbsp;&nbsp;<span class="code-attr">src</span>=<span class="code-val">"https://noticeify.pages.dev/consent-loader.js"</span><br>
-      &nbsp;&nbsp;<span class="code-attr">data-client-id</span>=<span class="code-val">"nfy_ocusleep_prod"</span><br>
-      &nbsp;&nbsp;<span class="code-attr">data-domain</span>=<span class="code-val">"ocusleep.com"</span><br>
-      &nbsp;&nbsp;<span class="code-attr">async</span>&gt;&lt;/<span class="code-tag">script</span>&gt;
+    <div class="code" style="max-width:460px;margin:0 auto;text-align:left">
+      &lt;<span class="ct2">script</span><br>
+      &nbsp;&nbsp;<span class="ca">src</span>=<span class="cv">"https://noticeify.pages.dev/consent-loader.js"</span><br>
+      &nbsp;&nbsp;<span class="ca">data-client-id</span>=<span class="cv">"nfy_your_site"</span><br>
+      &nbsp;&nbsp;<span class="ca">data-domain</span>=<span class="cv">"yourstore.com"</span><br>
+      &nbsp;&nbsp;<span class="ca">async</span>&gt;&lt;/<span class="ct2">script</span>&gt;
     </div>
   </div>
 
-  <div style="background:var(--bg);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border)">
-    <div class="section">
-      <div class="section-label">What it answers</div>
-      <h2>Three questions every website owner needs to answer</h2>
-      <div class="features" style="margin-top:20px">
-        <div class="feature">
-          <div class="feature-icon" style="background:var(--green-light)">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#1a6b4a" stroke-width="1.4"/><path d="M8 5v4l2.5 1.5" stroke="#1a6b4a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div style="background:var(--bg);border-top:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:14px 24px">
+    <div style="max-width:680px;margin:0 auto;display:flex;align-items:center;justify-content:space-around;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text2)">
+      <span>GDPR &amp; US State Laws</span><span>Google Consent Mode v2</span><span>Shopify ready</span><span>Healthcare-adjacent mode</span><span>GPC detection</span><span>Geo-targeting</span>
+    </div>
+  </div>
+
+  <div style="background:var(--bg3)">
+    <div class="sw">
+      <div class="sl2">Platform</div>
+      <h2 style="font-size:20px;font-weight:500;margin-bottom:8px">Everything you need for cookie compliance</h2>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.7">One platform to collect consent, block tracking, audit your site, and export proof of compliance.</p>
+      <div class="features">
+        <div class="feat"><div class="fi" style="background:var(--green-l)"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2" y="2" width="11" height="11" rx="2" stroke="#1a6b4a" stroke-width="1.3"/><path d="M5 7.5l2 2 3-3" stroke="#1a6b4a" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Consent banner</h3><p>GDPR &amp; CCPA compliant. Accept, Reject, Customize. Geo-targeted, accessible, no dark patterns.</p></div>
+        <div class="feat"><div class="fi" style="background:var(--danger-l)"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#a32d2d" stroke-width="1.3"/><path d="M7.5 5v3M7.5 9.5v.5" stroke="#a32d2d" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Pixel blocking</h3><p>Non-essential scripts blocked until consent. Vendor registry controls what loads and when.</p></div>
+        <div class="feat"><div class="fi" style="background:var(--blue-l)"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2" y="2" width="11" height="11" rx="2" stroke="#185fa5" stroke-width="1.3"/><path d="M4.5 5.5h6M4.5 7.5h4" stroke="#185fa5" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Consent log</h3><p>Every decision logged with timestamp, banner version, and categories. Export CSV or PDF.</p></div>
+        <div class="feat"><div class="fi" style="background:var(--warn-l)"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7" cy="7" r="4.5" stroke="#c45b00" stroke-width="1.3"/><path d="M10.5 10.5l3 3" stroke="#c45b00" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Pre-consent scanner</h3><p>Playwright scanner diffs pre- and post-consent page behavior to find pixels firing before consent.</p></div>
+        <div class="feat"><div class="fi" style="background:var(--green-l)"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 7.5h11M7.5 2v11" stroke="#1a6b4a" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Google Consent Mode v2</h3><p>All GCM signals default denied before GTM. Updated per category after the user decides.</p></div>
+        <div class="feat"><div class="fi" style="background:var(--blue-l)"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#185fa5" stroke-width="1.3"/><path d="M5 7.5l2 2 3-3" stroke="#185fa5" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>GPC detection</h3><p>Detects Global Privacy Control signals and defaults marketing to denied automatically.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg);border-top:.5px solid var(--border)">
+    <div class="sw">
+      <div class="sl2">Banner preview</div>
+      <h2 style="font-size:20px;font-weight:500;margin-bottom:6px">What your visitors see</h2>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">No dark patterns. Reject and Accept are equal weight. Fully keyboard accessible.</p>
+      <div style="background:var(--bg2);border-radius:var(--rl);padding:20px;border:.5px solid var(--border)">
+        <div style="height:48px;background:var(--bg3);border-radius:var(--r);margin-bottom:10px;opacity:.4"></div>
+        <div style="height:7px;background:var(--bg3);border-radius:3px;width:55%;margin-bottom:18px;opacity:.25"></div>
+        <div style="background:var(--bg);border:.5px solid var(--border2);border-radius:var(--rl);padding:16px 18px;max-width:460px;margin:0 auto">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px"><div style="width:16px;height:16px;border-radius:4px;background:var(--green-l);display:flex;align-items:center;justify-content:center"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 1L7.5 2.75v3.5L4.5 8 1.5 6.25V2.75L4.5 1z" stroke="#1a6b4a" stroke-width="1.1" stroke-linejoin="round"/></svg></div><span style="font-size:13px;font-weight:500">We value your privacy</span></div>
+          <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:11px">We use cookies to enhance your browsing experience, analyze traffic, prevent fraud, and personalize content. By clicking Accept All, you consent to our use of cookies.</p>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap"><a href="#">Terms &amp; Conditions</a><span>·</span><a href="#">Privacy Policy</a><span>·</span><a href="#">Your Privacy Choices</a></div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-p btn-s">Accept All</button>
+            <button class="btn btn-s">Reject All</button>
+            <button class="btn btn-s" style="border-color:transparent;color:var(--text2)">Customize</button>
           </div>
-          <h3>What tracking is on my site?</h3>
-          <p>The scanner crawls every page and builds a full inventory of pixels, analytics scripts, cookies, and iframes — classified by vendor and risk level.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon" style="background:var(--danger-light)">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5v6L8 14 2 11V5L8 2z" stroke="#a32d2d" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6v3M8 10.5v.5" stroke="#a32d2d" stroke-width="1.4" stroke-linecap="round"/></svg>
-          </div>
-          <h3>Is any of it firing before consent?</h3>
-          <p>A three-phase Playwright scan loads each page clean, then with consent, and diffs the results — surfacing any vendor that fires before the user clicks Accept.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon" style="background:var(--blue-light)">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="2" stroke="#185fa5" stroke-width="1.4"/><path d="M5.5 6h5M5.5 9h3" stroke="#185fa5" stroke-width="1.4" stroke-linecap="round"/></svg>
-          </div>
-          <h3>Can I prove what was consented to?</h3>
-          <p>Every consent event is logged with a timestamp, banner version, policy version, category choices, and GPC signal — exportable as CSV or PDF for legal review.</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon" style="background:var(--warn-light)">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M10 5l3 3-3 3" stroke="#c45b00" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h3>Google Consent Mode v2</h3>
-          <p>All consent signals default to denied before GTM loads, then update granularly after the user decides — preserving conversion modeling in denied state.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <div style="background:var(--bg-tertiary)">
-    <div class="section">
-      <div class="section-label">Banner</div>
-      <h2>What visitors see</h2>
-      <p class="section-sub">Loads before any non-essential script. No dark patterns. Reject and Accept are equal visual weight.</p>
-      <div class="banner-preview" style="max-width:520px">
-        <div class="banner-header">
-          <div class="banner-icon">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L8.5 3v4L5 9 1.5 7V3L5 1z" stroke="#1a6b4a" stroke-width="1.2" stroke-linejoin="round"/></svg>
-          </div>
-          <span class="banner-title">Your privacy choices</span>
-        </div>
-        <div class="banner-body">We use cookies and similar technologies to operate this website, improve performance, understand site usage, and support advertising. Non-essential cookies will not be activated unless you give consent.</div>
-        <div class="banner-links">
-          <a href="#">Privacy Policy</a><span>·</span>
-          <a href="#">Cookie Policy</a><span>·</span>
-          <a href="#">Your Privacy Choices</a>
-        </div>
-        <div class="banner-btns">
-          <button class="btn btn-primary btn-sm">Accept all</button>
-          <button class="btn btn-sm">Reject non-essential</button>
-          <button class="btn btn-sm" style="border-color:transparent;color:var(--text-secondary);font-size:12px">Manage preferences</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <footer>
+    <div class="fl"><div class="lm" style="width:20px;height:20px;border-radius:6px"><svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>Noticeify</div>
+    <span>Designed to support privacy compliance. Not legal advice.</span>
+    <span>noticeify.com</span>
+  </footer>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     DASHBOARD / TOOLS
-════════════════════════════════════════════════ -->
-<div id="page-tools" class="page">
-  <div class="section">
-
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div>
-        <div class="section-label">Dashboard</div>
-        <h2 style="margin-bottom:0">OcuSleep.com</h2>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--bg);border:0.5px solid var(--border);padding:5px 10px;border-radius:var(--radius-md)">
-        <div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
-        nfy_ocusleep_prod
-      </div>
+<!-- APP -->
+<div id="page-app" class="pg">
+  <div class="shell">
+    <div class="sb">
+      <div class="sb-sec">Main</div>
+      <button class="sbb active" onclick="sp('p-dash',this)"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>Dashboard</button>
+      <div class="sb-sec">Banner</div>
+      <button class="sbb" onclick="sp('p-banner',this)"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="10" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M4 10V4h8v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Cookie banner</button>
+      <button class="sbb" onclick="sp('p-pref',this)"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.8 3.8l1 1M11.2 11.2l1 1M11.2 4.8l-1 1M4.8 11.2l-1 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Preference center</button>
+      <div class="sb-sec">Compliance</div>
+      <button class="sbb" onclick="sp('p-cookies',this)"><svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Cookie manager</button>
+      <button class="sbb" onclick="sp('p-log',this)"><svg viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 5.5h5M5.5 8h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Consent log</button>
+      <button class="sbb" onclick="sp('p-reports',this)"><svg viewBox="0 0 16 16" fill="none"><path d="M4 12V8l2.5-3L9 9l2-2.5 1 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>Reports</button>
+      <div class="sb-sec">Settings</div>
+      <button class="sbb" onclick="sp('p-advanced',this)"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M11.4 4.6l-1.4 1.4M4.6 11.4l-1.4 1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Advanced settings</button>
+      <button class="sbb" onclick="sp('p-lang',this)"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 2.5C8 2.5 6 5 6 8s2 5.5 2 5.5M8 2.5C8 2.5 10 5 10 8s-2 5.5-2 5.5M2.5 8h11" stroke="currentColor" stroke-width="1.3"/></svg>Languages</button>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="showTab('tab-overview', this)">Overview</button>
-      <button class="tab-btn" onclick="showTab('tab-prefs', this)">Preference center</button>
-      <button class="tab-btn" onclick="showTab('tab-logs', this)">Consent logs</button>
-      <button class="tab-btn" onclick="showTab('tab-gcm', this)">Consent Mode</button>
-    </div>
+    <div class="ac">
+      <!-- Site selector -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <select style="padding:6px 10px;border:.5px solid var(--border2);border-radius:var(--r);font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text)"><option>ocusleep.com</option><option>39dollarglasses.com</option><option>+ Add website</option></select>
+          <span class="badge bg">Active</span>
+          <span style="font-size:12px;color:var(--text3)">Regulation: GDPR &amp; US State Laws</span>
+        </div>
+        <button class="btn btn-s">Get installation code</button>
+      </div>
 
-    <!-- Overview tab -->
-    <div class="tab-panel active" id="tab-overview">
-      <div class="status-bar">
-        <strong>Meta Pixel appears to be firing before consent on /checkout. Immediate review recommended.</strong>
-        <button class="btn btn-sm" style="background:var(--warn);color:#fff;border-color:var(--warn);flex-shrink:0" onclick="showPage('scanner')">Review</button>
-      </div>
-      <div class="metrics">
-        <div class="metric"><div class="metric-val green">54%</div><div class="metric-label">Acceptance rate</div></div>
-        <div class="metric"><div class="metric-val">31%</div><div class="metric-label">Rejected non-essential</div></div>
-        <div class="metric"><div class="metric-val warn">2</div><div class="metric-label">Pre-consent scripts</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">
-        <div class="card">
-          <div class="card-title">Consent by category (7d)</div>
-          ${[['Analytics','61','var(--green)'],['Marketing','48','var(--green)'],['Personalization','44','var(--green)'],['Support / chat','39','var(--green)'],['Embedded media','35','var(--green)']].map(([l,p,c])=>`
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <span style="font-size:11px;color:var(--text-secondary);width:90px;flex-shrink:0">${l}</span>
-            <div style="flex:1;height:5px;background:var(--bg-secondary);border-radius:3px;overflow:hidden">
-              <div style="width:${p}%;height:100%;background:${c};border-radius:3px"></div>
+      <!-- DASHBOARD -->
+      <div id="p-dash" class="panel active">
+        <div class="notif ns">Cookie banner status: <strong>Active</strong> — Successfully set up on ocusleep.com · Geo-targeted: California, Florida</div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="card">
+            <div class="ct">Cookie summary</div>
+            <div style="display:flex;gap:20px;margin-bottom:12px">
+              <div><div style="font-size:26px;font-weight:500">18</div><div style="font-size:11px;color:var(--text2)">Total cookies</div></div>
+              <div><div style="font-size:26px;font-weight:500">5</div><div style="font-size:11px;color:var(--text2)">Categories</div></div>
+              <div><div style="font-size:11px;font-weight:500;color:var(--text2);margin-top:3px">Last scan</div><div style="font-size:11px;color:var(--text3)">Apr 22, 2026</div><div style="font-size:11px;color:var(--text3)">Next: May 6</div></div>
             </div>
-            <span style="font-size:11px;font-weight:500;width:32px;text-align:right">${p}%</span>
-          </div>`).join('')}
+            <div style="display:flex;gap:7px"><button class="btn btn-p btn-s" onclick="sp('p-cookies',document.querySelector('[onclick*=p-cookies]'))">Manage cookies</button><button class="btn btn-s">Scan now</button></div>
+          </div>
+          <div class="card">
+            <div class="ct">Consent trends — last 7 days</div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="33" fill="none" stroke="var(--border)" stroke-width="13"/>
+                <circle cx="45" cy="45" r="33" fill="none" stroke="var(--green)" stroke-width="13" stroke-dasharray="124 83" stroke-dashoffset="83" stroke-linecap="round"/>
+                <circle cx="45" cy="45" r="33" fill="none" stroke="#e85555" stroke-width="13" stroke-dasharray="52 155" stroke-dashoffset="-41" stroke-linecap="round"/>
+                <circle cx="45" cy="45" r="33" fill="none" stroke="var(--blue)" stroke-width="13" stroke-dasharray="31 176" stroke-dashoffset="-93" stroke-linecap="round"/>
+                <text x="45" y="49" text-anchor="middle" font-size="12" font-weight="500" fill="var(--text)">1,368</text>
+              </svg>
+              <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
+                <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div><span style="color:var(--text2)">Accepted — 60%</span></div>
+                <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#e85555;flex-shrink:0"></div><span style="color:var(--text2)">Rejected — 25%</span></div>
+                <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></div><span style="color:var(--text2)">Partial — 15%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-size:13px;font-weight:500">Pageviews</span><span style="font-size:12px;color:var(--text3)">Last 7 days · 118,066 total</span></div>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:60px;margin-bottom:6px" id="dchartbars"></div>
+          <div style="display:flex;gap:6px;font-size:10px;color:var(--text3)" id="dchartlabels"></div>
         </div>
         <div class="card">
-          <div class="card-title">Vendor inventory</div>
-          ${[['Google Analytics 4','analytics','✓ blocked'],['Google Tag Manager','essential','✓ managed'],['Meta Pixel','marketing','⚠ pre-consent',true],['Microsoft Ads','marketing','✓ blocked'],['Klaviyo','marketing','⚠ review',false,true],['Zendesk Chat','support','✓ blocked']].map(([n,cat,status,crit,warn])=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:5px ${crit||warn?'14px':'0'};margin:0 ${crit||warn?'-14px':'0'};border-bottom:0.5px solid var(--border);background:${crit?'var(--danger-light)':warn?'var(--warn-light)':'transparent'}">
-            <span style="flex:1;font-size:12px;${crit||warn?'font-weight:500':''}">${n}</span>
-            <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:var(--bg-secondary);color:var(--text-secondary)">${cat}</span>
-            <span style="font-size:11px;font-weight:500;color:${crit?'var(--danger)':warn?'var(--warn)':'var(--green)'}">${status}</span>
-          </div>`).join('')}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-size:13px;font-weight:500">Recent consent logs</span><button class="btn btn-s" onclick="sp('p-log',document.querySelector('[onclick*=p-log]'))">View all</button></div>
+          <div class="lrow"><span class="lt">01:20</span><span class="le">User accepted all cookies</span><span class="lp">/checkout</span><span class="badge bg" style="margin-left:auto">Accepted</span></div>
+          <div class="lrow"><span class="lt">01:08</span><span class="le">User accepted all cookies</span><span class="lp">/product</span><span class="badge bg" style="margin-left:auto">Accepted</span></div>
+          <div class="lrow"><span class="lt">00:59</span><span class="le">User rejected all cookies</span><span class="lp">/</span><span class="badge bd" style="margin-left:auto">Rejected</span></div>
+          <div class="lrow"><span class="lt">00:51</span><span class="le">User accepted all cookies</span><span class="lp">/sleep-glasses</span><span class="badge bg" style="margin-left:auto">Accepted</span></div>
+          <div class="lrow"><span class="lt">00:49</span><span class="le">User rejected all cookies</span><span class="lp">/cart</span><span class="badge bd" style="margin-left:auto">Rejected</span></div>
         </div>
       </div>
-    </div>
 
-    <!-- Preference center tab -->
-    <div class="tab-panel" id="tab-prefs">
-      <div class="pref-modal">
-        <div class="pref-header">
-          <div class="pref-title">Manage your privacy preferences</div>
-          <div class="pref-sub">ocusleep.com · Last saved: today at 2:31 PM · Banner v1.0</div>
-        </div>
-        <div class="pref-row" style="opacity:.85">
-          <div class="pref-info">
-            <div class="pref-name">Strictly necessary</div>
-            <div class="pref-desc">Required to operate the website — shopping cart, checkout, authentication, payment processing, and fraud prevention.</div>
-            <div class="pref-vendors">Session cookies, Stripe, Signifyd</div>
+      <!-- BANNER BUILDER -->
+      <div id="p-banner" class="panel">
+        <h2 style="font-size:15px;font-weight:500;margin-bottom:14px">Cookie banner</h2>
+        <div class="bb-wrap">
+          <div class="bb-left">
+            <div class="bbs open">
+              <div class="bbst" onclick="this.parentElement.classList.toggle('open')">General <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 4l3.5 3.5L9 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+              <div class="bbb">
+                <label class="bbl">Template</label><select class="bbi"><option>GDPR &amp; US State Laws</option><option>GDPR only</option><option>CCPA only</option></select>
+                <label class="bbl">Geo-target</label><select class="bbi"><option>Select countries</option><option>Worldwide</option><option>EU &amp; UK</option></select>
+                <div style="font-size:11px;color:var(--text2);margin-bottom:8px">California, Florida selected</div>
+                <label class="bbl">Support IAB TCF v2.3</label>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label><span style="font-size:11px;color:var(--text2)">Off</span></div>
+              </div>
+            </div>
+            <div class="bbs open">
+              <div class="bbst" onclick="this.parentElement.classList.toggle('open')">Layout <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 4l3.5 3.5L9 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+              <div class="bbb">
+                <label class="bbl">Cookie notice style</label>
+                <div style="display:flex;gap:6px;margin-bottom:8px">
+                  <div style="flex:1;text-align:center;cursor:pointer"><div style="height:22px;background:var(--bg3);border-radius:3px;border:.5px solid var(--border2);margin-bottom:3px"></div><span style="font-size:10px;color:var(--text3)">Box</span></div>
+                  <div style="flex:1;text-align:center;cursor:pointer"><div style="height:6px;background:var(--green);border-radius:3px;margin:16px 0 3px"></div><span style="font-size:10px;color:var(--green-d);font-weight:500">Banner ✓</span></div>
+                  <div style="flex:1;text-align:center;cursor:pointer"><div style="width:22px;height:22px;background:var(--bg3);border-radius:50%;border:.5px solid var(--border2);margin:0 auto 3px"></div><span style="font-size:10px;color:var(--text3)">Popup</span></div>
+                </div>
+                <label class="bbl">Position</label><select class="bbi"><option>Bottom</option><option>Top</option></select>
+              </div>
+            </div>
+            <div class="bbs open">
+              <div class="bbst" onclick="this.parentElement.classList.toggle('open')">Content <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 4l3.5 3.5L9 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+              <div class="bbb">
+                <label class="bbl">Title</label><input class="bbi" id="bt" value="We value your privacy" oninput="ubp()"/>
+                <label class="bbl">Message</label><textarea class="bbi" id="bm" rows="3" oninput="ubp()" style="resize:none">We use cookies to enhance your browsing experience, analyze traffic, and personalize content. By clicking Accept All, you consent to our use of cookies.</textarea>
+                <label class="bbl">"Accept All" button text</label><input class="bbi" id="ba" value="Accept All" oninput="ubp()"/>
+                <label class="bbl">"Reject All" button text</label><input class="bbi" id="br" value="Reject All" oninput="ubp()"/>
+                <label class="bbl">"Customize" button</label><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label><span style="font-size:11px;color:var(--text2)">Show</span></div>
+                <label class="bbl">Cookie Policy link</label><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div>
+                <label class="bbl">Disable Noticeify branding</label><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div>
+              </div>
+            </div>
+            <div class="bbs">
+              <div class="bbst" onclick="this.parentElement.classList.toggle('open')">Cookie list <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 4l3.5 3.5L9 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+              <div class="bbb"><label class="bbl">Show cookie list on banner</label><div style="display:flex;align-items:center;gap:8px"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div></div>
+            </div>
+            <div class="bbs">
+              <div class="bbst" onclick="this.parentElement.classList.toggle('open')">Colours <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 4l3.5 3.5L9 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+              <div class="bbb">
+                <label class="bbl">Theme</label>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="radio" name="theme" checked/> Light</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="radio" name="theme"/> Dark</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="radio" name="theme"/> Auto-generated</label>
+                </div>
+                <div style="margin-top:8px"><a href="#" style="font-size:11px">Customise light colours</a></div>
+              </div>
+            </div>
+            <div style="margin-top:10px"><button class="btn btn-p" style="width:100%;font-size:12px">Publish changes</button></div>
           </div>
-          <span class="always-on">Always on</span>
-        </div>
-        <div class="pref-row">
-          <div class="pref-info"><div class="pref-name">Functional</div><div class="pref-desc">Remembers your preferences, region, and language settings.</div></div>
-          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-        </div>
-        <div class="pref-row">
-          <div class="pref-info"><div class="pref-name">Analytics</div><div class="pref-desc">Helps us understand how visitors use the site.</div><div class="pref-vendors">Google Analytics 4, Microsoft Clarity</div></div>
-          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-        </div>
-        <div class="pref-row">
-          <div class="pref-info"><div class="pref-name">Marketing & advertising</div><div class="pref-desc">Ad measurement, retargeting, and audience building across websites.</div><div class="pref-vendors">Meta Pixel, Google Ads, Microsoft Ads, Klaviyo</div></div>
-          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-        </div>
-        <div class="pref-row">
-          <div class="pref-info"><div class="pref-name">Support & chat</div><div class="pref-desc">Live chat and customer support widget.</div><div class="pref-vendors">Zendesk Chat</div></div>
-          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-        </div>
-        <div class="pref-row">
-          <div class="pref-info"><div class="pref-name">Embedded media</div><div class="pref-desc">YouTube and Vimeo video players. May set cookies when activated.</div></div>
-          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
-        </div>
-        <div class="pref-footer">
-          <div class="pref-footer-links">
-            <span>Consent ID: nfy_2xk9f</span>
-            <a href="#">Privacy Policy</a>
-          </div>
-          <div class="pref-footer-btns">
-            <button class="btn btn-sm" onclick="document.querySelectorAll('.pref-row .toggle input').forEach(i=>i.checked=false)">Reject all</button>
-            <button class="btn btn-primary btn-sm">Save preferences</button>
+          <div class="bb-right">
+            <div class="bmock">
+              <div style="background:var(--bg3);height:6px;border-radius:3px;width:70%;opacity:.5"></div>
+              <div class="bmh"></div>
+              <div class="bmg"><div class="bmc2"></div><div class="bmc2"></div><div class="bmc2"></div></div>
+              <div class="bmc" style="width:50%;opacity:.4"></div>
+            </div>
+            <div id="live-banner" style="background:var(--bg);border:.5px solid var(--border2);border-radius:var(--rl);padding:16px">
+              <div style="font-size:13px;font-weight:500;margin-bottom:6px" id="lbt">We value your privacy</div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:11px" id="lbm">We use cookies to enhance your browsing experience, analyze traffic, and personalize content. By clicking Accept All, you consent to our use of cookies.</div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:11px;display:flex;gap:8px;flex-wrap:wrap"><a href="#">Terms &amp; Conditions</a><span>·</span><a href="#">Privacy Policy</a><span>·</span><a href="#">Your Privacy Choices</a></div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <button class="btn btn-p btn-s" id="lba">Accept All</button>
+                <button class="btn btn-s" id="lbr">Reject All</button>
+                <button class="btn btn-s" style="border-color:transparent;color:var(--text2)">Customize</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Consent logs tab -->
-    <div class="tab-panel" id="tab-logs">
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--border)">
-          <span style="font-size:12px;font-weight:500">Recent consent events</span>
-          <button class="btn btn-sm">Export CSV</button>
-        </div>
-        <div class="log-row"><span class="log-time">2:41 PM</span><span class="log-event">User accepted all categories</span><span class="log-page">/checkout</span><span class="log-badge badge-accept">accept all</span></div>
-        <div class="log-row"><span class="log-time">2:38 PM</span><span class="log-event">GPC signal detected — marketing denied</span><span class="log-page">/sleep-glasses</span><span class="log-badge badge-gpc">GPC</span></div>
-        <div class="log-row"><span class="log-time">2:35 PM</span><span class="log-event">User rejected non-essential</span><span class="log-page">/cart</span><span class="log-badge badge-reject">rejected</span></div>
-        <div class="log-row"><span class="log-time">2:31 PM</span><span class="log-event">Custom: analytics only</span><span class="log-page">/</span><span class="log-badge badge-custom">custom</span></div>
-        <div class="log-row"><span class="log-time">2:28 PM</span><span class="log-event">User accepted all categories</span><span class="log-page">/checkout</span><span class="log-badge badge-accept">accept all</span></div>
-      </div>
-    </div>
-
-    <!-- Google Consent Mode tab -->
-    <div class="tab-panel" id="tab-gcm">
-      <div class="card">
-        <div class="card-title">Google Consent Mode v2 — current state</div>
-        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Default state (before consent). All signals denied until the user makes a choice.</p>
-        <div class="gcm-grid">
-          <div class="gcm-item"><div class="gcm-key">ad_storage</div><div class="gcm-val gcm-denied">denied</div></div>
-          <div class="gcm-item"><div class="gcm-key">analytics_storage</div><div class="gcm-val gcm-granted">granted</div></div>
-          <div class="gcm-item"><div class="gcm-key">ad_user_data</div><div class="gcm-val gcm-denied">denied</div></div>
-          <div class="gcm-item"><div class="gcm-key">ad_personalization</div><div class="gcm-val gcm-denied">denied</div></div>
-          <div class="gcm-item"><div class="gcm-key">functionality_storage</div><div class="gcm-val gcm-granted">granted</div></div>
-          <div class="gcm-item"><div class="gcm-key">personalization_storage</div><div class="gcm-val gcm-denied">denied</div></div>
-          <div class="gcm-item"><div class="gcm-key">security_storage</div><div class="gcm-val gcm-granted">granted</div></div>
-          <div class="gcm-item"><div class="gcm-key">wait_for_update</div><div class="gcm-val" style="color:var(--text-secondary)">500ms</div></div>
+      <!-- PREFERENCE CENTER -->
+      <div id="p-pref" class="panel">
+        <h2 style="font-size:15px;font-weight:500;margin-bottom:14px">Preference center</h2>
+        <div class="card" style="max-width:540px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div><div style="font-size:14px;font-weight:500">Customise consent preferences</div><div style="font-size:11px;color:var(--text2)">ocusleep.com · Banner v1.0</div></div>
+            <button class="btn btn-s">Reject all</button>
+          </div>
+          <div class="pr" style="opacity:.8"><div class="pi"><div class="pn">Necessary</div><div class="pd">Required for the site to function — shopping cart, checkout, login, and payment processing. Cannot be disabled.</div><div class="pv">Session cookies, Stripe, Signifyd</div></div><span class="ao">Always active</span></div>
+          <div class="pr"><div class="pi"><div class="pn">Functional</div><div class="pd">Remembers your preferences, region, and language settings.</div></div><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div>
+          <div class="pr"><div class="pi"><div class="pn">Analytics</div><div class="pd">Help us understand how visitors use the site so we can improve it.</div><div class="pv">Google Analytics 4, Microsoft Clarity</div></div><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div>
+          <div class="pr"><div class="pi"><div class="pn">Performance</div><div class="pd">Monitors and improves site speed and reliability.</div></div><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div>
+          <div class="pr"><div class="pi"><div class="pn">Advertisement</div><div class="pd">Ad measurement, retargeting, and audience building.</div><div class="pv">Meta Pixel, Google Ads, Microsoft Ads, TikTok Pixel, Klaviyo</div></div><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:.5px solid var(--border)">
+            <button class="btn btn-s" onclick="document.querySelectorAll('#p-pref .toggle input').forEach(i=>i.checked=false)">Reject all</button>
+            <button class="btn btn-p btn-s">Save my preferences</button>
+          </div>
         </div>
       </div>
-      <div class="card" style="margin-top:12px">
-        <div class="card-title">GTM container</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
-          <span style="color:var(--text-secondary)">Container ID</span>
-          <span style="font-family:var(--mono);font-size:11px">GTM-NQB7D7L</span>
+
+      <!-- COOKIE MANAGER -->
+      <div id="p-cookies" class="panel">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div><h2 style="font-size:15px;font-weight:500;margin-bottom:2px">Cookie manager</h2><p style="font-size:12px;color:var(--text2)">Last scan: Apr 22, 2026 · 47 pages · Next: May 6, 2026</p></div>
+          <button class="btn btn-p btn-s">Scan now</button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:8px">
-          <span style="color:var(--text-secondary)">Consent initialization tag</span>
-          <span style="color:var(--warn);font-size:11px;font-weight:500">⚠ not detected</span>
+        <div class="g4" style="margin-bottom:14px">
+          <div class="metric"><div class="mv">18</div><div class="ml">Total cookies</div></div>
+          <div class="metric"><div class="mv">5</div><div class="ml">Categories</div></div>
+          <div class="metric"><div class="mv d">2</div><div class="ml">Pre-consent fires</div></div>
+          <div class="metric"><div class="mv w">1</div><div class="ml">Unclassified</div></div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:8px">
-          <span style="color:var(--text-secondary)">url_passthrough</span>
-          <span style="color:var(--green);font-size:11px;font-weight:500">✓ enabled</span>
+        <div class="tabs">
+          <button class="tab active" onclick="st('cml',this)">Cookie list</button>
+          <button class="tab" onclick="st('cmf',this)">Scan findings</button>
+          <button class="tab" onclick="st('cmh',this)">Scan history</button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:8px">
-          <span style="color:var(--text-secondary)">ads_data_redaction</span>
-          <span style="color:var(--green);font-size:11px;font-weight:500">✓ enabled</span>
+        <div id="cml" class="tp active">
+          <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+            <button class="btn btn-s" style="background:var(--green-l);color:var(--green-d);border-color:transparent" onclick="filterCookies('necessary',this)">Necessary (6)</button>
+            <button class="btn btn-s" onclick="filterCookies('functional',this)">Functional (3)</button>
+            <button class="btn btn-s" onclick="filterCookies('analytics',this)">Analytics (4)</button>
+            <button class="btn btn-s" onclick="filterCookies('performance',this)">Performance (1)</button>
+            <button class="btn btn-s" onclick="filterCookies('advertisement',this)">Advertisement (4)</button>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <table class="ct-table">
+              <thead><tr><th>Cookie name</th><th>Domain</th><th>Duration</th><th>Description</th></tr></thead>
+              <tbody id="cookie-tbody">
+                <tr><td style="font-family:var(--mono);font-size:11px">ocusleep_session</td><td style="font-size:12px">www.ocusleep.com</td><td style="font-size:12px">3 months</td><td style="font-size:12px;color:var(--text2)">Shopping cart and checkout session</td></tr>
+                <tr><td style="font-family:var(--mono);font-size:11px">XSRF-TOKEN</td><td style="font-size:12px">www.ocusleep.com</td><td style="font-size:12px">3 months</td><td style="font-size:12px;color:var(--text2)">CSRF forgery security protection</td></tr>
+                <tr><td style="font-family:var(--mono);font-size:11px">nfy_consent</td><td style="font-size:12px">www.ocusleep.com</td><td style="font-size:12px">1 year</td><td style="font-size:12px;color:var(--text2)">Noticeify stores consent preferences</td></tr>
+                <tr><td style="font-family:var(--mono);font-size:11px">_shopify_y</td><td style="font-size:12px">www.ocusleep.com</td><td style="font-size:12px">1 year</td><td style="font-size:12px;color:var(--text2)">Shopify analytics identifier</td></tr>
+                <tr><td style="font-family:var(--mono);font-size:11px">_shopify_s</td><td style="font-size:12px">www.ocusleep.com</td><td style="font-size:12px">30 min</td><td style="font-size:12px;color:var(--text2)">Shopify session cookie</td></tr>
+                <tr><td style="font-family:var(--mono);font-size:11px">_ab</td><td style="font-size:12px">www.ocusleep.com</td><td style="font-size:12px">2 years</td><td style="font-size:12px;color:var(--text2)">Shopify A/B testing</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="cmf" class="tp">
+          <div class="finding"><span class="risk rc">Critical</span><div><div class="ft">Meta Pixel firing before consent</div><div class="fd">fbevents.js observed sending requests on /checkout before any consent choice was recorded.</div><div class="fu">connect.facebook.net/en_US/fbevents.js · /checkout, /cart</div></div></div>
+          <div class="finding"><span class="risk rh">High</span><div><div class="ft">Klaviyo not gated — loads via GTM custom HTML tag</div><div class="fd">The Klaviyo identify/track script loads from a GTM tag that bypasses the Noticeify vendor registry.</div><div class="fu">static.klaviyo.com/onsite/js/klaviyo.js · source: GTM-NQB7D7L</div></div></div>
+          <div class="finding"><span class="risk rm">Moderate</span><div><div class="ft">GTM Consent Mode v2 initialization tag not detected</div><div class="fd">GTM-NQB7D7L is present but no Consent Initialization tag was found. Add one as the first tag firing on all pages.</div><div class="fu">googletagmanager.com/gtm.js?id=GTM-NQB7D7L · ocusleep.com</div></div></div>
+          <div class="finding"><span class="risk rl">Low</span><div><div class="ft">1 unclassified third-party script detected</div><div class="fd">An external script was found but is not in the Noticeify vendor registry. Classify and assign a consent category.</div><div class="fu">cdn.justuno.com/visitorv2.js · source: GTM</div></div></div>
+        </div>
+        <div id="cmh" class="tp">
+          <div class="card" style="padding:0;overflow:hidden">
+            <table class="ct-table">
+              <thead><tr><th>Date</th><th>Pages</th><th>Cookies</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td style="font-size:12px">Apr 22, 2026</td><td style="font-size:12px">47</td><td style="font-size:12px">18</td><td><span class="badge bg">Completed</span></td><td><button class="btn btn-s">View report</button></td></tr>
+                <tr><td style="font-size:12px">Apr 15, 2026</td><td style="font-size:12px">45</td><td style="font-size:12px">17</td><td><span class="badge bg">Completed</span></td><td><button class="btn btn-s">View report</button></td></tr>
+                <tr><td style="font-size:12px">Apr 8, 2026</td><td style="font-size:12px">44</td><td style="font-size:12px">16</td><td><span class="badge bg">Completed</span></td><td><button class="btn btn-s">View report</button></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
+      <!-- CONSENT LOG -->
+      <div id="p-log" class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div><h2 style="font-size:15px;font-weight:500;margin-bottom:2px">Consent log</h2><p style="font-size:12px;color:var(--text2)">View and export proof of consent for compliance with privacy regulations</p></div>
+          <button class="btn btn-p btn-s">Export as CSV</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:10px 14px;border-bottom:.5px solid var(--border);display:flex;gap:8px">
+            <input placeholder="Search by Consent ID..." style="flex:1;padding:6px 10px;border:.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:var(--font);background:var(--bg);color:var(--text)"/>
+            <select style="padding:6px 10px;border:.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:var(--font);background:var(--bg);color:var(--text)"><option>All statuses</option><option>Accepted</option><option>Rejected</option><option>Partial</option></select>
+          </div>
+          <table class="ct-table">
+            <thead><tr><th>Consent ID</th><th>Country</th><th>Consent status</th><th>Date/time (UTC)</th><th>Proof</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_3xk9f_ab1c...</td><td style="font-size:12px">United States</td><td><span class="badge bg">Accepted</span></td><td style="font-size:12px">May 1, 2026 01:20:34</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_2mk8e_cd3f...</td><td style="font-size:12px">United States</td><td><span class="badge bg">Accepted</span></td><td style="font-size:12px">May 1, 2026 01:08:45</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_1lj7d_ef5g...</td><td style="font-size:12px">United States</td><td><span class="badge bd">Rejected</span></td><td style="font-size:12px">May 1, 2026 00:59:16</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_9ki6c_gh7h...</td><td style="font-size:12px">United States</td><td><span class="badge bg">Accepted</span></td><td style="font-size:12px">May 1, 2026 00:51:55</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_8jh5b_ij9k...</td><td style="font-size:12px">United States</td><td><span class="badge bd">Rejected</span></td><td style="font-size:12px">May 1, 2026 00:49:19</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_7ig4a_kl1m...</td><td style="font-size:12px">United States</td><td><span class="badge bd">Rejected</span></td><td style="font-size:12px">May 1, 2026 00:35:51</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_6hf3z_mn3n...</td><td style="font-size:12px">Canada</td><td><span class="badge bd">Rejected</span></td><td style="font-size:12px">May 1, 2026 00:34:56</td><td><button class="btn btn-s">View</button></td></tr>
+              <tr><td style="font-family:var(--mono);font-size:11px">nfy_5ge2y_op5p...</td><td style="font-size:12px">United Kingdom</td><td><span class="badge bw">Partial</span></td><td style="font-size:12px">May 1, 2026 00:32:00</td><td><button class="btn btn-s">View</button></td></tr>
+            </tbody>
+          </table>
+          <div style="padding:10px 14px;border-top:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text3)">
+            <span>Showing 1–8 of 1,368 · <a href="#" style="font-size:12px">Export as CSV</a></span>
+            <div style="display:flex;gap:4px"><button class="btn btn-s">← Prev</button><button class="btn btn-s btn-p">1</button><button class="btn btn-s">2</button><button class="btn btn-s">3</button><button class="btn btn-s">4</button><button class="btn btn-s">Next →</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="p-reports" class="panel">
+        <h2 style="font-size:15px;font-weight:500;margin-bottom:4px">Reports</h2>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:16px">See how visitors are engaging with your consent banner</p>
+        <div class="g2">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-size:13px;font-weight:500">Consent trends</span><select style="padding:4px 8px;border:.5px solid var(--border2);border-radius:var(--r);font-size:11px;font-family:var(--font);background:var(--bg);color:var(--text)"><option>Last 7 days</option><option>Last 30 days</option></select></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="33" fill="none" stroke="var(--border)" stroke-width="13"/>
+                <circle cx="45" cy="45" r="33" fill="none" stroke="var(--green)" stroke-width="13" stroke-dasharray="124 83" stroke-dashoffset="83" stroke-linecap="round"/>
+                <circle cx="45" cy="45" r="33" fill="none" stroke="#e85555" stroke-width="13" stroke-dasharray="52 155" stroke-dashoffset="-41" stroke-linecap="round"/>
+                <circle cx="45" cy="45" r="33" fill="none" stroke="var(--blue)" stroke-width="13" stroke-dasharray="31 176" stroke-dashoffset="-93" stroke-linecap="round"/>
+                <text x="45" y="49" text-anchor="middle" font-size="12" font-weight="500" fill="var(--text)">1,368</text>
+              </svg>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+                <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div><span style="color:var(--text2)">Accepted — 60%</span></div>
+                <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:#e85555"></div><span style="color:var(--text2)">Rejected — 25%</span></div>
+                <div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></div><span style="color:var(--text2)">Partial — 15%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:500">Pageviews</span><select style="padding:4px 8px;border:.5px solid var(--border2);border-radius:var(--r);font-size:11px;font-family:var(--font);background:var(--bg);color:var(--text)"><option>Last 7 days</option></select></div>
+            <div style="font-size:26px;font-weight:500;margin-bottom:2px">118,066</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Apr 24 – Apr 30, 2026</div>
+            <div style="display:flex;align-items:flex-end;gap:6px;height:60px;margin-bottom:6px" id="rchartbars"></div>
+            <div style="display:flex;gap:6px;font-size:10px;color:var(--text3)" id="rchartlabels"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED SETTINGS -->
+      <div id="p-advanced" class="panel">
+        <h2 style="font-size:15px;font-weight:500;margin-bottom:4px">Advanced settings</h2>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Manage advanced settings for your banner and cookie consent</p>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ct">Banner settings</div>
+          <div class="sr"><div class="si"><div class="sl">Cookie banner status</div><div class="sd">You have successfully set up your cookie banner!</div></div><div class="sa"><span class="badge bg" style="margin-right:8px">Active</span><button class="btn btn-s">Get installation code</button></div></div>
+          <div class="sr"><div class="si"><div class="sl">Banner display status</div><div class="sd">Disable to hide the banner for testing.</div></div><div class="sa"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ct">Consent settings</div>
+          <div class="sr"><div class="si"><div class="sl">Consent log</div><div class="sd">Store timestamped proof of each consent decision.</div></div><div class="sa"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="sr"><div class="si"><div class="sl">Subdomain consent sharing</div><div class="sd">Share consent across subdomains of ocusleep.com.</div></div><div class="sa"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="sr"><div class="si"><div class="sl">GPC detection</div><div class="sd">Honor Global Privacy Control browser signals automatically.</div></div><div class="sa"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="sr"><div class="si"><div class="sl">Consent log retention</div><div class="sd">How long to keep consent records on file.</div></div><div class="sa"><select style="padding:6px 10px;border:.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:var(--font);background:var(--bg);color:var(--text)"><option>365 days</option><option>180 days</option><option>90 days</option></select></div></div>
+          <div class="sr"><div class="si"><div class="sl">Renew user consents</div><div class="sd">Re-prompt users when banner or policy changes.</div></div><div class="sa"><button class="btn btn-s">Renew now</button></div></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ct">Google consent mode (GCM)</div>
+          <div class="notif ns">No error detected — Google Consent Mode is configured correctly on your website. Last checked: Apr 29, 2026</div>
+          <div class="sr"><div class="si"><div class="sl">Support GCM</div><div class="sd">Enables Google Consent Mode v2. All signals default denied before GTM loads.</div></div><div class="sa"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="sr"><div class="si"><div class="sl">Allow Google tags to fire before consent</div><div class="sd">When enabled, Google tags fire before users provide consent. Not recommended.</div></div><div class="sa"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="sr"><div class="si"><div class="sl">Enable debug mode</div><div class="sd">Shows GCM default status and update status in browser console.</div></div><div class="sa"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="gcm">
+            <div class="gi"><div class="gk">ad_storage</div><div class="gv denied">denied</div></div>
+            <div class="gi"><div class="gk">analytics_storage</div><div class="gv granted">granted</div></div>
+            <div class="gi"><div class="gk">ad_user_data</div><div class="gv denied">denied</div></div>
+            <div class="gi"><div class="gk">ad_personalization</div><div class="gv denied">denied</div></div>
+            <div class="gi"><div class="gk">functionality_storage</div><div class="gv granted">granted</div></div>
+            <div class="gi"><div class="gk">personalization_storage</div><div class="gv denied">denied</div></div>
+            <div class="gi"><div class="gk">security_storage</div><div class="gv granted">granted</div></div>
+            <div class="gi"><div class="gk">wait_for_update</div><div class="gv" style="color:var(--text2)">500ms</div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="ct">Microsoft consent mode &amp; Clarity</div>
+          <div class="sr"><div class="si"><div class="sl">Support Microsoft UET consent mode</div><div class="sd">Controls first and third-party cookie storage based on user consent.</div></div><div class="sa"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div></div>
+          <div class="sr"><div class="si"><div class="sl">Microsoft Clarity consent API</div><div class="sd">The Clarity Consent API communicates consent directly to Clarity before tracking.</div></div><div class="sa"><label class="toggle"><input type="checkbox"><div class="tt"></div><div class="th"></div></label></div></div>
+        </div>
+        <div class="card">
+          <div class="ct">Healthcare-adjacent mode</div>
+          <div class="sr"><div class="si"><div class="sl">Enable healthcare-adjacent privacy mode</div><div class="sd">Stricter controls for sites involving prescription eyewear, vision care, sleep products, or migraine products. Marketing pixels blocked by default on sensitive pages.</div></div><div class="sa"><label class="toggle"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div></div>
+        </div>
+      </div>
+
+      <!-- LANGUAGES -->
+      <div id="p-lang" class="panel">
+        <h2 style="font-size:15px;font-weight:500;margin-bottom:4px">Languages</h2>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:14px">The banner language is determined by the lang attribute on your site's &lt;html&gt; tag.</p>
+        <div class="notif nw" style="margin-bottom:14px">Banner language is set by <code style="font-family:var(--mono);font-size:11px">lang</code> on your &lt;html&gt; tag, e.g. <code style="font-family:var(--mono);font-size:11px">&lt;html lang="en"&gt;</code></div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:10px 14px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:500">Your required languages</span><button class="btn btn-p btn-s">Add language</button></div>
+          <table class="ct-table">
+            <thead><tr><th>Language</th><th>Language code</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody><tr><td style="font-size:13px">English</td><td style="font-family:var(--mono);font-size:11px">en</td><td><span class="badge bb">Default</span></td><td><button class="btn btn-s">Edit content</button></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     SCANNER
-════════════════════════════════════════════════ -->
-<div id="page-scanner" class="page">
-  <div class="section">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-      <div>
-        <div class="section-label">Scanner</div>
-        <h2 style="margin-bottom:4px">Pre-consent pixel scanner</h2>
-        <p style="font-size:12px;color:var(--text-secondary)">Last scan: Apr 29, 2026 · 47 URLs crawled · ocusleep.com</p>
-      </div>
-      <button class="btn btn-primary btn-sm">Run new scan</button>
+<!-- PRICING -->
+<div id="page-pricing" class="pg">
+  <div class="sw">
+    <div style="text-align:center;margin-bottom:28px">
+      <div class="sl2" style="text-align:center">Pricing</div>
+      <h2 style="font-size:22px;font-weight:500;margin-bottom:6px">Simple, transparent pricing</h2>
+      <p style="font-size:14px;color:var(--text2)">One platform, multiple websites. No per-pageview charges.</p>
     </div>
-
-    <div class="scan-grid">
-      <div class="metric"><div class="metric-val">47</div><div class="metric-label">Pages crawled</div></div>
-      <div class="metric"><div class="metric-val">11</div><div class="metric-label">Third-party domains</div></div>
-      <div class="metric"><div class="metric-val danger">2</div><div class="metric-label">Pre-consent fires</div></div>
-      <div class="metric"><div class="metric-val warn">1</div><div class="metric-label">Unclassified</div></div>
-    </div>
-
-    <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:10px">Findings requiring attention</div>
-
-    <div class="finding">
-      <span class="risk-badge r-critical">Critical</span>
-      <div>
-        <div class="finding-title">Meta Pixel firing before affirmative consent</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">The Meta Pixel was observed sending network requests before a consent choice was recorded on the /checkout page.</div>
-        <div class="finding-url">connect.facebook.net/en_US/fbevents.js · detected on /checkout, /cart</div>
-      </div>
-    </div>
-    <div class="finding">
-      <span class="risk-badge r-high">High</span>
-      <div>
-        <div class="finding-title">Klaviyo onsite script not fully gated</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">The Klaviyo identify/track script loads from a GTM custom HTML tag that fires outside the Noticeify vendor registry.</div>
-        <div class="finding-url">static.klaviyo.com/onsite/js/klaviyo.js · source: GTM custom HTML tag</div>
-      </div>
-    </div>
-    <div class="finding">
-      <span class="risk-badge r-moderate">Moderate</span>
-      <div>
-        <div class="finding-title">Zendesk chat script loads before user opens chat</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">Correctly blocked in the vendor registry, but confirm the GTM trigger does not bypass the consent gate.</div>
-        <div class="finding-url">static.zdassets.com/ekr/snippet.js · 39 of 47 pages</div>
-      </div>
-    </div>
-    <div class="finding">
-      <span class="risk-badge r-low">Low</span>
-      <div>
-        <div class="finding-title">1 unclassified third-party script detected</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">An external script was detected but is not present in the Noticeify vendor registry. Classify and assign a consent category.</div>
-        <div class="finding-url">cdn.justuno.com/visitorv2.js · source: GTM · /frames, /sunglasses</div>
-      </div>
-    </div>
-
-    <div style="margin-top:16px;display:flex;gap:8px">
-      <button class="btn btn-primary btn-sm">Run new scan</button>
-      <button class="btn btn-sm">Export PDF report</button>
+    <div class="g3">
+      <div class="plan"><div class="pn2">Starter</div><div class="pp">$0<span>/mo</span></div><div class="pd2">One website. Perfect for getting started.</div><ul class="pf"><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>1 website</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Banner &amp; preference center</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Consent logging (100/mo)</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC detection</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Google Consent Mode v2</li></ul><button class="btn" style="width:100%" onclick="gp('app')">Get started</button></div>
+      <div class="plan feat2"><div class="pbadge">Most popular</div><div class="pn2">Business</div><div class="pp">$49<span>/mo</span></div><div class="pd2">Up to 5 websites with scanner and exports.</div><ul class="pf"><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>5 websites</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Unlimited consent logging</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Weekly automated scanner</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>CSV &amp; PDF exports</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Slack critical alerts</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Healthcare-adjacent mode</li></ul><button class="btn btn-p" style="width:100%">Start free trial</button></div>
+      <div class="plan"><div class="pn2">Agency</div><div class="pp">$149<span>/mo</span></div><div class="pd2">Unlimited websites. White-label ready.</div><ul class="pf"><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Unlimited websites</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>White-label banner</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Legal-ready PDF reports</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Priority support</li><li><div class="cc"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Shopify app integration</li></ul><button class="btn" style="width:100%">Contact us</button></div>
     </div>
   </div>
+  <footer><div class="fl"><div class="lm" style="width:20px;height:20px;border-radius:6px"><svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>Noticeify</div><span>Designed to support privacy compliance. Not legal advice.</span><span>noticeify.com</span></footer>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     PRICING
-════════════════════════════════════════════════ -->
-<div id="page-pricing" class="page">
-  <div class="section">
-    <div class="section-label">Pricing</div>
-    <h2>Simple, transparent pricing</h2>
-    <p class="section-sub">One platform, multiple sites. No per-pageview charges.</p>
-    <div class="pricing">
-      <div class="plan">
-        <div class="plan-name">Starter</div>
-        <div class="plan-price">$0<span>/mo</span></div>
-        <div class="plan-desc">One website. Perfect for getting started.</div>
-        <ul class="plan-features">
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>1 website</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Banner + preference center</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Consent logging</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC detection</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Google Consent Mode v2</li>
-        </ul>
-        <button class="btn" style="width:100%" onclick="showPage('docs')">Get started</button>
-      </div>
-      <div class="plan featured">
-        <div class="plan-badge">Most popular</div>
-        <div class="plan-name">Business</div>
-        <div class="plan-price">$49<span>/mo</span></div>
-        <div class="plan-desc">Up to 5 websites with full scanner and exports.</div>
-        <ul class="plan-features">
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>5 websites</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Weekly automated scanner</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>CSV + PDF exports</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Slack critical alerts</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Healthcare-adjacent mode</li>
-        </ul>
-        <button class="btn btn-primary" style="width:100%">Start free trial</button>
-      </div>
-      <div class="plan">
-        <div class="plan-name">Agency</div>
-        <div class="plan-price">$149<span>/mo</span></div>
-        <div class="plan-desc">Unlimited websites. White-label ready.</div>
-        <ul class="plan-features">
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Unlimited websites</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>White-label banner</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Legal-ready PDF reports</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Priority support</li>
-          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Multi-team access</li>
-        </ul>
-        <button class="btn" style="width:100%">Contact us</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     DOCS
-════════════════════════════════════════════════ -->
-<div id="page-docs" class="page">
-  <div class="section">
-    <div class="section-label">Quick start</div>
-    <h2>Get Noticeify running in 3 steps</h2>
-    <p class="section-sub">Works on any website. Shopify, WordPress, or custom HTML.</p>
-
+<!-- DOCS -->
+<div id="page-docs" class="pg">
+  <div class="sw">
+    <div class="sl2">Quick start</div>
+    <h2 style="font-size:20px;font-weight:500;margin-bottom:6px">Install Noticeify in 3 steps</h2>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:22px">Works on Shopify, WordPress, or any HTML site.</p>
     <div style="display:flex;flex-direction:column;gap:20px">
-      <div class="doc-step">
-        <div class="step-num">1</div>
-        <div style="flex:1">
-          <h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Add the embed tag</h3>
-          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Place this as the very first script in &lt;head&gt;, before GTM and any other tag. On Shopify, add it to theme.liquid.</p>
-          <div class="code-block" style="max-width:100%">
-            &lt;<span class="code-tag">script</span><br>
-            &nbsp;&nbsp;<span class="code-attr">src</span>=<span class="code-val">"https://noticeify.pages.dev/consent-loader.js"</span><br>
-            &nbsp;&nbsp;<span class="code-attr">data-client-id</span>=<span class="code-val">"nfy_ocusleep_prod"</span><br>
-            &nbsp;&nbsp;<span class="code-attr">data-domain</span>=<span class="code-val">"ocusleep.com"</span><br>
-            &nbsp;&nbsp;<span class="code-attr">async</span>&gt;&lt;/<span class="code-tag">script</span>&gt;
-          </div>
-        </div>
-      </div>
-      <div class="doc-step">
-        <div class="step-num">2</div>
-        <div style="flex:1">
-          <h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Gate your vendor scripts</h3>
-          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Move all non-essential scripts into the vendor registry. Noticeify only loads them after the user grants that category.</p>
-          <div class="code-block" style="max-width:100%">
-            <span style="color:var(--text-tertiary)">// Check consent before firing any pixel</span><br>
-            if (window.Noticeify.hasConsent(<span class="code-val">'marketing'</span>)) {<br>
-            &nbsp;&nbsp;loadMetaPixel();<br>
-            }<br><br>
-            <span style="color:var(--text-tertiary)">// React to consent changes</span><br>
-            window.Noticeify.onConsentChange(({ categories }) => {<br>
-            &nbsp;&nbsp;if (categories?.analytics) initGA4();<br>
-            });
-          </div>
-        </div>
-      </div>
-      <div class="doc-step">
-        <div class="step-num">3</div>
-        <div style="flex:1">
-          <h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Add the footer privacy link</h3>
-          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Give returning visitors a way to update their preferences at any time. Required by CCPA.</p>
-          <div class="code-block" style="max-width:100%">
-            &lt;<span class="code-tag">a</span> <span class="code-attr">href</span>=<span class="code-val">"#"</span><br>
-            &nbsp;&nbsp;<span class="code-attr">onclick</span>=<span class="code-val">"window.Noticeify.openPreferences();return false"</span>&gt;<br>
-            &nbsp;&nbsp;Your Privacy Choices<br>
-            &lt;/<span class="code-tag">a</span>&gt;
-          </div>
-        </div>
-      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:26px;height:26px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--green-d);flex-shrink:0">1</div><div style="flex:1"><h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Add the embed tag</h3><p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Place this as the very first script in &lt;head&gt;, before GTM. On Shopify, add to <code style="font-family:var(--mono);font-size:11px">theme.liquid</code> immediately after <code style="font-family:var(--mono);font-size:11px">&lt;head&gt;</code>.</p><div class="code">&lt;<span class="ct2">script</span><br>&nbsp;&nbsp;<span class="ca">src</span>=<span class="cv">"https://noticeify.pages.dev/consent-loader.js"</span><br>&nbsp;&nbsp;<span class="ca">data-client-id</span>=<span class="cv">"nfy_ocusleep_prod"</span><br>&nbsp;&nbsp;<span class="ca">data-domain</span>=<span class="cv">"ocusleep.com"</span><br>&nbsp;&nbsp;<span class="ca">async</span>&gt;&lt;/<span class="ct2">script</span>&gt;</div></div></div>
+      <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:26px;height:26px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--green-d);flex-shrink:0">2</div><div style="flex:1"><h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Gate your vendor scripts</h3><p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Use the Noticeify API to check consent before loading any pixel or script.</p><div class="code"><span style="color:var(--text3)">// Load Meta Pixel only after marketing consent</span><br>if (window.Noticeify.hasConsent(<span class="cv">'marketing'</span>)) {<br>&nbsp;&nbsp;loadMetaPixel();<br>}<br><br><span style="color:var(--text3)">// React to changes in real time</span><br>window.Noticeify.onConsentChange(({ categories }) =&gt; {<br>&nbsp;&nbsp;if (categories?.analytics) initGA4();<br>});</div></div></div>
+      <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:26px;height:26px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--green-d);flex-shrink:0">3</div><div style="flex:1"><h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Add the footer privacy link</h3><p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Required by CCPA — lets returning visitors update preferences.</p><div class="code">&lt;<span class="ct2">a</span> <span class="ca">onclick</span>=<span class="cv">"window.Noticeify.openPreferences();return false"</span>&gt;<br>&nbsp;&nbsp;Your Privacy Choices<br>&lt;/<span class="ct2">a</span>&gt;</div></div></div>
     </div>
-
-    <div style="margin-top:28px;padding:16px 18px;background:var(--blue-light);border-radius:var(--radius-lg);border:0.5px solid rgba(24,95,165,.2)">
-      <div style="font-size:12px;font-weight:500;color:var(--blue);margin-bottom:4px">Shopify-specific note</div>
-      <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">In Shopify, go to <strong>Online Store → Themes → Edit code → layout/theme.liquid</strong>. Paste the embed tag immediately after the opening <code style="font-family:var(--mono);font-size:11px">&lt;head&gt;</code> tag, before any other script. GTM must load after Noticeify.</p>
-    </div>
+    <div style="margin-top:22px;padding:14px 16px;background:var(--blue-l);border-radius:var(--rl);border:.5px solid rgba(24,95,165,.2)"><div style="font-size:12px;font-weight:500;color:var(--blue);margin-bottom:4px">Shopify note</div><p style="font-size:12px;color:var(--text2);line-height:1.6">Go to <strong>Online Store → Themes → Edit code → layout/theme.liquid</strong>. Paste the embed tag immediately after <code style="font-family:var(--mono);font-size:11px">&lt;head&gt;</code>. GTM must load after Noticeify so Consent Mode defaults are set first.</p></div>
+    <div style="margin-top:20px"><h3 style="font-size:14px;font-weight:500;margin-bottom:12px">API reference</h3>
+    <div class="card" style="padding:0;overflow:hidden"><table class="ct-table"><thead><tr><th>Method</th><th>Description</th></tr></thead><tbody>
+      <tr><td style="font-family:var(--mono);font-size:11px">Noticeify.hasConsent('category')</td><td style="font-size:12px;color:var(--text2)">Returns true if the category has been granted</td></tr>
+      <tr><td style="font-family:var(--mono);font-size:11px">Noticeify.getConsent()</td><td style="font-size:12px;color:var(--text2)">Returns the full consent record object</td></tr>
+      <tr><td style="font-family:var(--mono);font-size:11px">Noticeify.openPreferences()</td><td style="font-size:12px;color:var(--text2)">Opens the preference center modal</td></tr>
+      <tr><td style="font-family:var(--mono);font-size:11px">Noticeify.onConsentChange(fn)</td><td style="font-size:12px;color:var(--text2)">Registers a callback fired on every consent change</td></tr>
+      <tr><td style="font-family:var(--mono);font-size:11px">Noticeify.withdrawConsent()</td><td style="font-size:12px;color:var(--text2)">Clears consent and re-shows the banner</td></tr>
+    </tbody></table></div></div>
   </div>
+  <footer><div class="fl"><div class="lm" style="width:20px;height:20px;border-radius:6px"><svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>Noticeify</div><span>Designed to support privacy compliance. Not legal advice.</span><span>noticeify.com</span></footer>
 </div>
-
-<!-- ── Footer ── -->
-<footer>
-  <div class="footer-logo">
-    <div class="logo-mark" style="width:20px;height:20px;border-radius:6px">
-      <svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
-    </div>
-    Noticeify
-  </div>
-  <span>Designed to support privacy compliance. Not legal advice.</span>
-  <span>noticeify.com</span>
-</footer>
 
 <script>
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
-    const page = document.getElementById('page-' + id);
-    if (page) page.classList.add('active');
-    const btn = document.querySelector(`.nav-link[onclick="showPage('${id}')"]`);
-    if (btn) btn.classList.add('active');
-    window.scrollTo(0, 0);
-  }
+const D=['Apr 25','Apr 26','Apr 27','Apr 28','Apr 29','Apr 30'];
+const V=[21450,19800,18200,15600,12400,8800];
+function bc(bi,li){
+  const b=document.getElementById(bi);const l=document.getElementById(li);if(!b)return;
+  const mx=Math.max(...V);
+  b.innerHTML=V.map((v,i)=>`<div style="flex:1;border-radius:3px 3px 0 0;background:var(--green);height:${Math.round(v/mx*100)}%;opacity:${0.4+i*0.1}"></div>`).join('');
+  l.innerHTML=D.map(d=>`<span style="flex:1;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${d}</span>`).join('');
+}
+bc('dchartbars','dchartlabels');bc('rchartbars','rchartlabels');
 
-  function showTab(id, btn) {
-    const container = btn.closest('.page') || document;
-    container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const panel = document.getElementById(id);
-    if (panel) panel.classList.add('active');
-    if (btn) btn.classList.add('active');
-  }
+function gp(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const map={home:'Home',app:'Dashboard',pricing:'Pricing',docs:'Docs'};
+  document.querySelectorAll('.nb').forEach(b=>{if(b.textContent.trim()===map[id])b.classList.add('active')});
+  window.scrollTo(0,0);
+  if(id==='app'||id==='reports'){bc('rchartbars','rchartlabels')}
+}
+function sp(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sbb').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='p-reports'){setTimeout(()=>bc('rchartbars','rchartlabels'),50)}
+}
+function st(id,btn){
+  const c=btn.closest('.panel');
+  c.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  c.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function ubp(){
+  const t=document.getElementById('bt'),m=document.getElementById('bm'),a=document.getElementById('ba'),r=document.getElementById('br');
+  if(t)document.getElementById('lbt').textContent=t.value;
+  if(m)document.getElementById('lbm').textContent=m.value;
+  if(a)document.getElementById('lba').textContent=a.value;
+  if(r)document.getElementById('lbr').textContent=r.value;
+}
+function filterCookies(cat,btn){
+  document.querySelectorAll('[onclick*=filterCookies]').forEach(b=>{b.style.background='';b.style.color='';b.style.borderColor=''});
+  btn.style.background='var(--green-l)';btn.style.color='var(--green-d)';btn.style.borderColor='transparent';
+}
 </script>
 </body>
 </html>
