@@ -16,165 +16,14 @@
  */
 
 import { Router }   from 'express';
-import crypto       from 'crypto';
 import { query, withClient, setClientContext } from '../db/pool.js';
 import { requireAuth, validateOrigin }         from '../middleware/auth.js';
+import { validatePayload, hashIp, geoLookup } from '../services/consent-utils.js';
 
 const router = Router();
 
-// ---------------------------------------------------------------------------
-// Validation helpers
-// ---------------------------------------------------------------------------
-
-const VALID_SOURCES = new Set([
-  'banner', 'preference_center', 'api', 'withdrawal', 'gpc'
-]);
-
-const ALLOWED_CATS = [
-  'functional', 'analytics', 'marketing',
-  'personalization', 'support', 'media'
-];
-
-const GEO_LOOKUP_TIMEOUT_MS = parseInt(process.env.GEO_LOOKUP_TIMEOUT_MS || '1200', 10);
-const GEOIP_ENDPOINT = process.env.GEOIP_ENDPOINT || 'https://ipapi.co';
-
-/**
- * Validate the incoming consent payload from consent-logger.js.
- * Returns { valid: true, data } or { valid: false, errors: [...] }.
- *
- * @param {object} body — raw request body
- */
-function validatePayload(body) {
-  const errors = [];
-
-  if (!body.consentId || typeof body.consentId !== 'string' || body.consentId.length > 64) {
-    errors.push('consentId: required string, max 64 chars');
-  }
-  if (!body.clientId || typeof body.clientId !== 'string') {
-    errors.push('clientId: required string');
-  }
-  if (!body.timestamp || isNaN(Date.parse(body.timestamp))) {
-    errors.push('timestamp: required ISO 8601 string');
-  }
-
-  // Reject timestamps more than 24h in the future (clock skew / replay attack)
-  const consentedAt = new Date(body.timestamp);
-  if (consentedAt > new Date(Date.now() + 86_400_000)) {
-    errors.push('timestamp: must not be in the future');
-  }
-
-  if (!VALID_SOURCES.has(body.source)) {
-    errors.push(`source: must be one of ${[...VALID_SOURCES].join(', ')}`);
-  }
-  if (body.version && typeof body.version !== 'string') {
-    errors.push('version: must be a string');
-  }
-
-  // categories can be null for withdrawal events
-  if (body.source !== 'withdrawal' && body.categories) {
-    if (typeof body.categories !== 'object') {
-      errors.push('categories: must be an object');
-    }
-  }
-
-  // URL — strip query params to reduce PII exposure if they contain order data etc.
-  let cleanPageUrl = null;
-  if (body.pageUrl) {
-    try {
-      const u = new URL(body.pageUrl);
-      // Keep path but strip query string and fragment (may contain PII)
-      cleanPageUrl = u.origin + u.pathname;
-    } catch (_) {
-      cleanPageUrl = null; // malformed URL — don't store it
-    }
-  }
-
-  if (errors.length) return { valid: false, errors };
-
-  return {
-    valid: true,
-    data: {
-      consentId:     body.consentId,
-      clientId:      body.clientId,
-      previousId:    body.previousConsentId || null,
-      sdkVersion:    typeof body.sdkVersion === 'string' ? body.sdkVersion.slice(0, 20) : '0.0.0',
-      consentVersion: typeof body.version === 'string' ? body.version.slice(0, 20) : '1.0',
-      consentedAt:   consentedAt.toISOString(),
-      source:        body.source,
-      categories:    body.categories || null,
-      gpcDetected:   body.gpcDetected === true,
-      doNotTrack:    body.doNotTrack   === true,
-      pageUrl:       cleanPageUrl,
-      referrer:      typeof body.referrer === 'string' ? body.referrer.slice(0, 500) : null,
-      userAgent:     typeof body.userAgent === 'string' ? body.userAgent.slice(0, 512) : null,
-      language:      typeof body.language === 'string' ? body.language.slice(0, 10) : null,
-      viewportWidth:  Number.isInteger(body.viewportWidth)  ? body.viewportWidth  : null,
-      viewportHeight: Number.isInteger(body.viewportHeight) ? body.viewportHeight : null,
-    },
-  };
-}
-
-// ---------------------------------------------------------------------------
-// IP anonymization
-//
-// We hash the IP with a daily salt so:
-//   - The same IP on the same day produces the same hash (dedup, rate limiting)
-//   - The same IP on different days produces a different hash (no long-term tracking)
-//   - Raw IPs are never stored
-// ---------------------------------------------------------------------------
-
-function hashIp(ip) {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const salt   = process.env.IP_HASH_SALT;
-  if (!salt) {
-    throw new Error('IP_HASH_SALT is not configured');
-  }
-  return crypto
-    .createHmac('sha256', salt + today)
-    .update(ip || '')
-    .digest('hex');
-}
-
-// ---------------------------------------------------------------------------
-// Geo lookup
-//
-// HTTP-based lookup (defaults to ipapi.co, configurable via GEOIP_ENDPOINT).
-// Fails open to null values to keep consent ingestion fast and reliable.
-//
-// Returns { countryCode, regionCode } or nulls if lookup fails.
-// ---------------------------------------------------------------------------
-
-async function geoLookup(ip) {
-  if (!ip || ip === '::1' || ip === '127.0.0.1') {
-    return { countryCode: null, regionCode: null };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GEO_LOOKUP_TIMEOUT_MS);
-  try {
-    const res = await fetch(`${GEOIP_ENDPOINT}/${encodeURIComponent(ip)}/json/`, {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) {
-      return { countryCode: null, regionCode: null };
-    }
-
-    const data = await res.json();
-    return {
-      countryCode: typeof data?.country_code === 'string'
-        ? data.country_code.toUpperCase().slice(0, 2)
-        : null,
-      regionCode: typeof data?.region_code === 'string'
-        ? data.region_code.toUpperCase().slice(0, 8)
-        : null,
-    };
-  } catch (_) {
-    return { countryCode: null, regionCode: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+// Consent payload validation and geo/IP helpers are centralized in
+// backend/services/consent-utils.js for testability and reuse.
 
 // ---------------------------------------------------------------------------
 // POST /api/v1/consent
@@ -475,4 +324,3 @@ router.get(
 );
 
 export default router;
-export { validatePayload, hashIp, geoLookup };

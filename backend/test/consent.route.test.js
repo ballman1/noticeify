@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { hashIp, geoLookup } from '../routes/consent.js';
+import { hashIp, geoLookup } from '../services/consent-utils.js';
 
 test('hashIp throws when IP_HASH_SALT is missing', () => {
   const prev = process.env.IP_HASH_SALT;
