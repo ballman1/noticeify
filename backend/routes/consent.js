@@ -475,3 +475,4 @@ router.get(
 );
 
 export default router;
+export { validatePayload, hashIp, geoLookup };
