@@ -138,9 +138,8 @@ function hashIp(ip) {
 // ---------------------------------------------------------------------------
 // Geo lookup
 //
-// Minimal stub — replace with your preferred IP geo library:
-//   - maxmind/GeoLite2 (free, local DB): npm install maxmind
-//   - ipinfo.io API (simple, paid at scale)
+// HTTP-based lookup (defaults to ipapi.co, configurable via GEOIP_ENDPOINT).
+// Fails open to null values to keep consent ingestion fast and reliable.
 //
 // Returns { countryCode, regionCode } or nulls if lookup fails.
 // ---------------------------------------------------------------------------

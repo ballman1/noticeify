@@ -2,6 +2,7 @@ import { query } from '../db/pool.js';
 
 let workerStarted = false;
 let pollHandle = null;
+let isProcessing = false;
 
 const POLL_MS = parseInt(process.env.SCANNER_POLL_MS || '5000', 10);
 const STALE_RUNNING_MINUTES = parseInt(process.env.SCANNER_STALE_RUNNING_MINUTES || '30', 10);
@@ -77,12 +78,16 @@ async function processNextPendingScan() {
 
 export async function kickScannerWorker() {
   if (!workerStarted) return;
+  if (isProcessing) return;
+  isProcessing = true;
   try {
     while (await processNextPendingScan()) {
       // drain queue
     }
   } catch (err) {
     console.error('[ScannerWorker] processing error:', err.message);
+  } finally {
+    isProcessing = false;
   }
 }
 
@@ -94,7 +99,10 @@ export async function startScannerWorker() {
     `UPDATE scanner_runs
      SET status = 'pending', error_message = 'Recovered stale running scan on worker startup.'
      WHERE status = 'running'
-       AND started_at < NOW() - ($1 || ' minutes')::INTERVAL`,
+       AND (
+         started_at IS NULL
+         OR started_at < NOW() - ($1 || ' minutes')::INTERVAL
+       )`,
     [STALE_RUNNING_MINUTES]
   );
 
