@@ -18,10 +18,15 @@
  */
 
 import { Router }     from 'express';
-import crypto         from 'crypto';
-import { query, withClient, setClientContext } from '../db/pool.js';
+import { query } from '../db/pool.js';
 import { requireAuth }                         from '../middleware/auth.js';
+import { kickScannerWorker } from '../scanner/worker.js';
 
+function createScannerRouter({
+  queryFn = query,
+  requireAuthFn = requireAuth,
+  kickScannerWorkerFn = kickScannerWorker,
+} = {}) {
 const router = Router();
 
 // ---------------------------------------------------------------------------
@@ -30,7 +35,7 @@ const router = Router();
 
 router.post(
   '/run/:clientId',
-  requireAuth('scanner:run'),
+  requireAuthFn('scanner:run'),
   async (req, res) => {
     const { clientId } = req.params;
 
@@ -39,17 +44,15 @@ router.post(
     }
 
     // Look up client config
-    const clientResult = await query(
+    const clientResult = await queryFn(
       `SELECT id, domain, client_key FROM clients WHERE id = $1 AND deleted_at IS NULL`,
       [clientId]
     );
     if (!clientResult.rows.length) {
       return res.status(404).json({ error: 'client_not_found' });
     }
-    const client = clientResult.rows[0];
-
     // Check if a scan is already running
-    const running = await query(
+    const running = await queryFn(
       `SELECT id FROM scanner_runs
        WHERE client_id = $1 AND status IN ('pending','running')
        LIMIT 1`,
@@ -65,7 +68,7 @@ router.post(
 
     // Create the scanner_runs row
     const triggeredBy = req.body?.triggeredBy || 'manual';
-    const runResult = await query(
+    const runResult = await queryFn(
       `INSERT INTO scanner_runs (client_id, triggered_by, status)
        VALUES ($1, $2, 'pending')
        RETURNING id`,
@@ -73,61 +76,14 @@ router.post(
     );
     const scanRunId = runResult.rows[0].id;
 
-    // Return immediately — scan runs async
+    // Return immediately — worker loop will pick this up durably from DB
     res.status(202).json({
       scanRunId,
       status:  'pending',
       message: 'Scan started. Poll GET /api/v1/scanner/runs/:scanRunId for status.',
     });
-
-    // Run scan in background (fire and forget)
-    // Scanner modules are dynamically imported here so Vercel never bundles
-    // Playwright at startup — it's only loaded when a scan is actually triggered
-    // (which happens via GitHub Actions, not via Vercel's serverless runtime).
-    setImmediate(async () => {
-      const startTime = Date.now();
-      try {
-        const baseUrl = `https://${client.domain}`;
-
-        // Dynamic imports — keeps Playwright out of Vercel's module graph
-        const { runSiteScan } = await import('../../scanner/core/site-crawler.js');
-        const { formatDashboardPayload, formatTextSummary } =
-          await import('../../scanner/reporters/scan-reporter.js');
-
-        const report  = await runSiteScan({
-          clientId,
-          scanRunId,
-          baseUrl,
-          clientDomain: client.domain,
-          onProgress:   (msg) => console.log(`[Scanner:${scanRunId}] ${msg}`),
-        });
-
-        // Store the formatted dashboard payload on the run record
-        const payload = formatDashboardPayload(report, {
-          clientId,
-          scanRunId,
-          baseUrl,
-          durationMs: Date.now() - startTime,
-        });
-
-        await query(
-          `UPDATE scanner_runs
-           SET result_json = $1, completed_at = NOW(), status = 'completed'
-           WHERE id = $2`,
-          [JSON.stringify(payload), scanRunId]
-        );
-
-        console.log(formatTextSummary(report, { baseUrl }));
-
-      } catch (err) {
-        console.error(`[Scanner:${scanRunId}] Fatal error:`, err.message);
-        await query(
-          `UPDATE scanner_runs
-           SET status = 'failed', error_message = $1, completed_at = NOW()
-           WHERE id = $2`,
-          [err.message.slice(0, 500), scanRunId]
-        );
-      }
+    kickScannerWorkerFn().catch((err) => {
+      console.error('[ScannerRoute] Unable to trigger worker:', err.message);
     });
   }
 );
@@ -138,11 +94,11 @@ router.post(
 
 router.get(
   '/runs/:scanRunId',
-  requireAuth('scanner:read'),
+  requireAuthFn('scanner:read'),
   async (req, res) => {
     const { scanRunId } = req.params;
 
-    const result = await query(
+    const result = await queryFn(
       `SELECT id, client_id, status, triggered_by, urls_crawled,
               started_at, completed_at, error_message, result_json
        FROM scanner_runs
@@ -183,7 +139,7 @@ router.get(
 
 router.get(
   '/latest/:clientId',
-  requireAuth('scanner:read'),
+  requireAuthFn('scanner:read'),
   async (req, res) => {
     const { clientId } = req.params;
 
@@ -191,7 +147,7 @@ router.get(
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    const result = await query(
+    const result = await queryFn(
       `SELECT id, status, urls_crawled, started_at, completed_at, result_json
        FROM scanner_runs
        WHERE client_id = $1 AND status = 'completed'
@@ -223,7 +179,7 @@ router.get(
 
 router.get(
   '/history/:clientId',
-  requireAuth('scanner:read'),
+  requireAuthFn('scanner:read'),
   async (req, res) => {
     const { clientId } = req.params;
     const limit = Math.min(parseInt(req.query.limit || '20', 10), 100);
@@ -232,7 +188,7 @@ router.get(
       return res.status(403).json({ error: 'forbidden' });
     }
 
-    const result = await query(
+    const result = await queryFn(
       `SELECT
          sr.id, sr.status, sr.triggered_by, sr.urls_crawled,
          sr.started_at, sr.completed_at, sr.error_message,
@@ -264,7 +220,7 @@ router.get(
 
 router.patch(
   '/runs/:scanRunId',
-  requireAuth('scanner:run'),
+  requireAuthFn('scanner:run'),
   async (req, res) => {
     const { scanRunId } = req.params;
     const { status, result_json, error_message } = req.body;
@@ -274,7 +230,7 @@ router.patch(
       return res.status(400).json({ error: 'invalid_status' });
     }
 
-    const run = await query(
+    const run = await queryFn(
       'SELECT client_id FROM scanner_runs WHERE id = $1',
       [scanRunId]
     );
@@ -295,9 +251,14 @@ router.patch(
     if (!fields.length) return res.status(400).json({ error: 'nothing_to_update' });
 
     vals.push(scanRunId);
-    await query(`UPDATE scanner_runs SET ${fields.join(', ')} WHERE id = $${i}`, vals);
+    await queryFn(`UPDATE scanner_runs SET ${fields.join(', ')} WHERE id = $${i}`, vals);
     return res.status(204).send();
   }
 );
 
+return router;
+}
+
+const router = createScannerRouter();
+export { createScannerRouter };
 export default router;
