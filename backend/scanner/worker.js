@@ -1,13 +1,9 @@
 import { query } from '../db/pool.js';
 
-let workerStarted = false;
-let pollHandle = null;
-let isProcessing = false;
-
 const POLL_MS = parseInt(process.env.SCANNER_POLL_MS || '5000', 10);
 const STALE_RUNNING_MINUTES = parseInt(process.env.SCANNER_STALE_RUNNING_MINUTES || '30', 10);
 
-async function runScanJob(run) {
+async function runScanJob(run, queryFn) {
   const { id: scanRunId, client_id: clientId, domain } = run;
   const startTime = Date.now();
   const baseUrl = `https://${domain}`;
@@ -32,7 +28,7 @@ async function runScanJob(run) {
       durationMs: Date.now() - startTime,
     });
 
-    await query(
+    await queryFn(
       `UPDATE scanner_runs
        SET result_json = $1, completed_at = NOW(), status = 'completed'
        WHERE id = $2`,
@@ -41,7 +37,7 @@ async function runScanJob(run) {
 
     console.log(formatTextSummary(report, { baseUrl }));
   } catch (err) {
-    await query(
+    await queryFn(
       `UPDATE scanner_runs
        SET status = 'failed', error_message = $1, completed_at = NOW()
        WHERE id = $2`,
@@ -50,8 +46,13 @@ async function runScanJob(run) {
   }
 }
 
+function createScannerWorker({ queryFn = query, runScanJobFn = runScanJob } = {}) {
+  let workerStarted = false;
+  let pollHandle = null;
+  let isProcessing = false;
+
 async function processNextPendingScan() {
-  const claim = await query(
+  const claim = await queryFn(
     `WITH next_run AS (
        SELECT sr.id
        FROM scanner_runs sr
@@ -72,11 +73,11 @@ async function processNextPendingScan() {
   );
 
   if (!claim.rows.length) return false;
-  await runScanJob(claim.rows[0]);
+  await runScanJobFn(claim.rows[0], queryFn);
   return true;
 }
 
-export async function kickScannerWorker() {
+async function kickScannerWorker() {
   if (!workerStarted) {
     await startScannerWorker();
     return;
@@ -94,11 +95,11 @@ export async function kickScannerWorker() {
   }
 }
 
-export async function startScannerWorker() {
+async function startScannerWorker() {
   if (workerStarted) return;
   workerStarted = true;
 
-  await query(
+  await queryFn(
     `UPDATE scanner_runs
      SET status = 'pending', error_message = 'Recovered stale running scan on worker startup.'
      WHERE status = 'running'
@@ -121,3 +122,12 @@ export async function startScannerWorker() {
     pollHandle.unref();
   }
 }
+
+  return { startScannerWorker, kickScannerWorker, _processNextPendingScan: processNextPendingScan };
+}
+
+const defaultWorker = createScannerWorker({ queryFn: query });
+const startScannerWorker = defaultWorker.startScannerWorker;
+const kickScannerWorker = defaultWorker.kickScannerWorker;
+
+export { createScannerWorker, startScannerWorker, kickScannerWorker };
