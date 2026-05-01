@@ -22,8 +22,6 @@ import rateLimit     from 'express-rate-limit';
 import { healthCheck } from './db/pool.js';
 import consentRoutes   from './routes/consent.js';
 import scannerRoutes   from './routes/scanner.js';
-// Keep all scanner worker lifecycle + metrics imports together to avoid
-// future merge conflicts between startup-only and full-lifecycle variants.
 import {
   startScannerWorker,
   stopScannerWorker,
