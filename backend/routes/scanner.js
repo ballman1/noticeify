@@ -18,9 +18,9 @@
  */
 
 import { Router }     from 'express';
-import crypto         from 'crypto';
-import { query, withClient, setClientContext } from '../db/pool.js';
+import { query } from '../db/pool.js';
 import { requireAuth }                         from '../middleware/auth.js';
+import { kickScannerWorker } from '../scanner/worker.js';
 
 const router = Router();
 
@@ -46,8 +46,6 @@ router.post(
     if (!clientResult.rows.length) {
       return res.status(404).json({ error: 'client_not_found' });
     }
-    const client = clientResult.rows[0];
-
     // Check if a scan is already running
     const running = await query(
       `SELECT id FROM scanner_runs
@@ -73,61 +71,14 @@ router.post(
     );
     const scanRunId = runResult.rows[0].id;
 
-    // Return immediately — scan runs async
+    // Return immediately — worker loop will pick this up durably from DB
     res.status(202).json({
       scanRunId,
       status:  'pending',
       message: 'Scan started. Poll GET /api/v1/scanner/runs/:scanRunId for status.',
     });
-
-    // Run scan in background (fire and forget)
-    // Scanner modules are dynamically imported here so Vercel never bundles
-    // Playwright at startup — it's only loaded when a scan is actually triggered
-    // (which happens via GitHub Actions, not via Vercel's serverless runtime).
-    setImmediate(async () => {
-      const startTime = Date.now();
-      try {
-        const baseUrl = `https://${client.domain}`;
-
-        // Dynamic imports — keeps Playwright out of Vercel's module graph
-        const { runSiteScan } = await import('../../scanner/core/site-crawler.js');
-        const { formatDashboardPayload, formatTextSummary } =
-          await import('../../scanner/reporters/scan-reporter.js');
-
-        const report  = await runSiteScan({
-          clientId,
-          scanRunId,
-          baseUrl,
-          clientDomain: client.domain,
-          onProgress:   (msg) => console.log(`[Scanner:${scanRunId}] ${msg}`),
-        });
-
-        // Store the formatted dashboard payload on the run record
-        const payload = formatDashboardPayload(report, {
-          clientId,
-          scanRunId,
-          baseUrl,
-          durationMs: Date.now() - startTime,
-        });
-
-        await query(
-          `UPDATE scanner_runs
-           SET result_json = $1, completed_at = NOW(), status = 'completed'
-           WHERE id = $2`,
-          [JSON.stringify(payload), scanRunId]
-        );
-
-        console.log(formatTextSummary(report, { baseUrl }));
-
-      } catch (err) {
-        console.error(`[Scanner:${scanRunId}] Fatal error:`, err.message);
-        await query(
-          `UPDATE scanner_runs
-           SET status = 'failed', error_message = $1, completed_at = NOW()
-           WHERE id = $2`,
-          [err.message.slice(0, 500), scanRunId]
-        );
-      }
+    kickScannerWorker().catch((err) => {
+      console.error('[ScannerRoute] Unable to trigger worker:', err.message);
     });
   }
 );

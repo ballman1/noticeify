@@ -35,6 +35,9 @@ const ALLOWED_CATS = [
   'personalization', 'support', 'media'
 ];
 
+const GEO_LOOKUP_TIMEOUT_MS = parseInt(process.env.GEO_LOOKUP_TIMEOUT_MS || '1200', 10);
+const GEOIP_ENDPOINT = process.env.GEOIP_ENDPOINT || 'https://ipapi.co';
+
 /**
  * Validate the incoming consent payload from consent-logger.js.
  * Returns { valid: true, data } or { valid: false, errors: [...] }.
@@ -122,7 +125,10 @@ function validatePayload(body) {
 
 function hashIp(ip) {
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const salt   = process.env.IP_HASH_SALT || 'change-me-in-production';
+  const salt   = process.env.IP_HASH_SALT;
+  if (!salt) {
+    throw new Error('IP_HASH_SALT is not configured');
+  }
   return crypto
     .createHmac('sha256', salt + today)
     .update(ip || '')
@@ -140,15 +146,35 @@ function hashIp(ip) {
 // ---------------------------------------------------------------------------
 
 async function geoLookup(ip) {
-  // TODO: replace with real geo lookup
-  // Example with maxmind:
-  // const reader = await maxmind.open('./GeoLite2-City.mmdb');
-  // const city   = reader.get(ip);
-  // return {
-  //   countryCode: city?.country?.iso_code || null,
-  //   regionCode:  city?.subdivisions?.[0]?.iso_code || null,
-  // };
-  return { countryCode: null, regionCode: null };
+  if (!ip || ip === '::1' || ip === '127.0.0.1') {
+    return { countryCode: null, regionCode: null };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEO_LOOKUP_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${GEOIP_ENDPOINT}/${encodeURIComponent(ip)}/json/`, {
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) {
+      return { countryCode: null, regionCode: null };
+    }
+
+    const data = await res.json();
+    return {
+      countryCode: typeof data?.country_code === 'string'
+        ? data.country_code.toUpperCase().slice(0, 2)
+        : null,
+      regionCode: typeof data?.region_code === 'string'
+        ? data.region_code.toUpperCase().slice(0, 8)
+        : null,
+    };
+  } catch (_) {
+    return { countryCode: null, regionCode: null };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // ---------------------------------------------------------------------------
