@@ -77,7 +77,10 @@ async function processNextPendingScan() {
 }
 
 export async function kickScannerWorker() {
-  if (!workerStarted) return;
+  if (!workerStarted) {
+    await startScannerWorker();
+    return;
+  }
   if (isProcessing) return;
   isProcessing = true;
   try {
