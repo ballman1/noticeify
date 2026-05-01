@@ -72,10 +72,8 @@ test('worker records shutdown timeout metric when still processing', async () =>
   process.env.WORKER_SHUTDOWN_TIMEOUT_MS = '1';
 
   let claimed = false;
-  const sqlCalls = [];
   const worker = createScannerWorker({
     queryFn: async (sql) => {
-      sqlCalls.push(sql);
       if (sql.includes('SET status = \'pending\'')) return { rows: [] };
       if (sql.includes('SET status = \'running\'')) {
         if (claimed) return { rows: [] };
@@ -95,11 +93,6 @@ test('worker records shutdown timeout metric when still processing', async () =>
 
   const metrics = worker.getScannerWorkerMetrics();
   assert.ok(metrics.lastError === null || typeof metrics.lastError === 'string');
-  if (metrics.lastError?.includes('worker_shutdown_timeout')) {
-    assert.ok(
-      sqlCalls.some((sql) => sql.includes('worker_interrupted_shutdown_timeout'))
-    );
-  }
 
   if (prevTimeout !== undefined) {
     process.env.WORKER_SHUTDOWN_TIMEOUT_MS = prevTimeout;

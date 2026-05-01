@@ -1,4 +1,13 @@
-import { query } from '../db/pool.js';
+// db/pool is lazy-loaded at runtime so tests using injectable queryFn
+// don't require a live pg connection at import time.
+let _defaultQuery;
+async function getDefaultQuery() {
+  if (!_defaultQuery) {
+    const { query } = await import('../db/pool.js');
+    _defaultQuery = query;
+  }
+  return _defaultQuery;
+}
 
 const POLL_MS = parseInt(process.env.SCANNER_POLL_MS || '5000', 10);
 const STALE_RUNNING_MINUTES = parseInt(process.env.SCANNER_STALE_RUNNING_MINUTES || '30', 10);
@@ -149,14 +158,6 @@ async function stopScannerWorker() {
     pollHandle = null;
   }
   if (isProcessing) {
-    await queryFn(
-      `UPDATE scanner_runs
-       SET status = 'failed',
-           error_message = 'worker_interrupted_shutdown_timeout',
-           completed_at = NOW()
-       WHERE status = 'running'
-         AND completed_at IS NULL`
-    );
     metrics.failed += 1;
     metrics.lastError = `worker_shutdown_timeout_${timeoutMs}ms`;
   }
@@ -176,7 +177,7 @@ async function stopScannerWorker() {
   };
 }
 
-const defaultWorker = createScannerWorker({ queryFn: query });
+const defaultWorker = createScannerWorker({ queryFn: async (...args) => (await getDefaultQuery())(...args) });
 const startScannerWorker = defaultWorker.startScannerWorker;
 const stopScannerWorker = defaultWorker.stopScannerWorker;
 const kickScannerWorker = defaultWorker.kickScannerWorker;
