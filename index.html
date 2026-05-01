@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noticeify — Privacy Consent Platform</title>
+  <meta name="description" content="Stop tracking your customers before they say yes. Noticeify blocks advertising pixels and third-party trackers until your visitor gives affirmative consent." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #ffffff;
+      --bg-secondary: #f8f8f6;
+      --bg-tertiary:  #f2f0eb;
+      --text:         #111111;
+      --text-secondary: #555550;
+      --text-tertiary:  #999990;
+      --border:       rgba(0,0,0,0.10);
+      --border-md:    rgba(0,0,0,0.18);
+      --green:        #1a6b4a;
+      --green-light:  #e6f4ef;
+      --green-dark:   #0d4a33;
+      --blue:         #185fa5;
+      --blue-light:   #e6f1fb;
+      --warn:         #c45b00;
+      --warn-light:   #fff3e6;
+      --danger:       #a32d2d;
+      --danger-light: #fcebeb;
+      --radius-md:    8px;
+      --radius-lg:    12px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:           #1a1a18;
+        --bg-secondary: #222220;
+        --bg-tertiary:  #2a2a28;
+        --text:         #f0efe8;
+        --text-secondary: #aaa9a0;
+        --text-tertiary:  #666660;
+        --border:       rgba(255,255,255,0.10);
+        --border-md:    rgba(255,255,255,0.18);
+        --green-light:  #0d2e1f;
+        --green-dark:   #9fd4bc;
+        --blue-light:   #0c1e35;
+        --warn-light:   #2a1a00;
+        --danger-light: #2a0d0d;
+      }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-tertiary);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 28px;
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 15px; color: var(--text); text-decoration: none; }
+    .logo-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-mark svg { width: 15px; height: 15px; }
+    .nav-links { display: flex; gap: 6px; }
+    .nav-link {
+      padding: 6px 14px; border-radius: var(--radius-md); border: none;
+      background: none; font-size: 13px; cursor: pointer; color: var(--text-secondary);
+      font-family: var(--font); transition: background .15s, color .15s;
+    }
+    .nav-link:hover { background: var(--bg-secondary); color: var(--text); }
+    .nav-link.active { background: var(--bg-secondary); color: var(--text); font-weight: 500; }
+    .nav-cta { display: flex; gap: 8px; }
+    .btn {
+      padding: 7px 16px; border-radius: var(--radius-md); font-size: 13px;
+      cursor: pointer; border: 0.5px solid var(--border-md); background: none;
+      color: var(--text); font-family: var(--font); transition: background .15s;
+    }
+    .btn:hover { background: var(--bg-secondary); }
+    .btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn-primary:hover { background: #14532d; border-color: #14532d; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+    /* ── Page wrapper ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Section ── */
+    .section { padding: 48px 28px; max-width: 720px; margin: 0 auto; }
+    .section-label { font-size: 11px; font-weight: 500; color: var(--green); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .section h2 { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+    .section-sub { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; }
+
+    /* ── Hero ── */
+    .hero { padding: 72px 28px 56px; text-align: center; max-width: 680px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 14px; border-radius: 20px;
+      background: var(--green-light); color: var(--green-dark);
+      font-size: 12px; font-weight: 500; margin-bottom: 20px;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .hero h1 { font-size: 36px; font-weight: 500; line-height: 1.2; margin-bottom: 16px; }
+    .hero h1 em { font-style: normal; color: var(--green); }
+    .hero p { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .hero-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+    .code-block {
+      background: var(--bg-secondary); border-radius: var(--radius-lg);
+      padding: 14px 18px; text-align: left;
+      font-size: 12px; font-family: var(--mono);
+      color: var(--text-secondary); border: 0.5px solid var(--border);
+      max-width: 460px; margin: 0 auto; line-height: 1.9;
+    }
+    .code-tag { color: var(--green); }
+    .code-attr { color: var(--blue); }
+    .code-val { color: var(--warn); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px 18px;
+    }
+    .card-title { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+
+    /* ── Metrics ── */
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .metric { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 14px 16px; }
+    .metric-val { font-size: 26px; font-weight: 500; margin-bottom: 3px; }
+    .metric-val.green { color: var(--green); }
+    .metric-val.warn  { color: var(--warn); }
+    .metric-val.danger{ color: var(--danger); }
+    .metric-label { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── Findings ── */
+    .finding {
+      background: var(--bg); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); padding: 11px 14px;
+      display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px;
+    }
+    .risk-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; margin-top: 1px; white-space: nowrap; }
+    .r-critical { background: var(--danger-light); color: var(--danger); }
+    .r-high     { background: var(--warn-light);   color: var(--warn); }
+    .r-moderate { background: var(--warn-light);   color: #7a3a00; }
+    .r-low      { background: var(--green-light);  color: var(--green-dark); }
+    .finding-title { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+    .finding-url   { font-size: 11px; color: var(--text-tertiary); font-family: var(--mono); }
+
+    /* ── Features grid ── */
+    .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .feature { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
+    .feature-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .feature h3 { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+    .feature p  { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+
+    /* ── Banner preview ── */
+    .banner-preview {
+      background: var(--bg); border: 0.5px solid var(--border-md);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .banner-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .banner-icon { width: 18px; height: 18px; border-radius: 5px; background: var(--green-light); display: flex; align-items: center; justify-content: center; }
+    .banner-title { font-size: 13px; font-weight: 500; }
+    .banner-body  { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
+    .banner-links { font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .banner-links a { color: var(--blue); text-decoration: none; }
+    .banner-links a:hover { text-decoration: underline; }
+    .banner-btns  { display: flex; gap: 7px; flex-wrap: wrap; }
+
+    /* ── Preference center ── */
+    .pref-modal { background: var(--bg); border: 0.5px solid var(--border-md); border-radius: var(--radius-lg); overflow: hidden; }
+    .pref-header { padding: 16px 18px; border-bottom: 0.5px solid var(--border); }
+    .pref-title  { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+    .pref-sub    { font-size: 11px; color: var(--text-secondary); }
+    .pref-row { display: flex; align-items: flex-start; gap: 14px; padding: 13px 18px; border-bottom: 0.5px solid var(--border); }
+    .pref-row:last-child { border-bottom: none; }
+    .pref-info { flex: 1; min-width: 0; }
+    .pref-name { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+    .pref-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+    .pref-vendors { font-size: 10px; color: var(--text-tertiary); margin-top: 4px; }
+    .always-on { font-size: 11px; font-weight: 500; color: var(--green); flex-shrink: 0; padding-top: 2px; }
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; margin-top: 1px; cursor: pointer; }
+    .toggle input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1; margin: 0; }
+    .toggle-track { position: absolute; inset: 0; background: var(--border-md); border-radius: 11px; transition: background .2s; }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform .2s; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .toggle input:checked ~ .toggle-track { background: var(--green); }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+    .toggle input:focus-visible ~ .toggle-track { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .pref-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px; background: var(--bg-secondary); border-top: 0.5px solid var(--border); }
+    .pref-footer-links { font-size: 11px; color: var(--text-tertiary); display: flex; gap: 8px; }
+    .pref-footer-links a { color: var(--blue); text-decoration: none; }
+    .pref-footer-btns { display: flex; gap: 8px; }
+
+    /* ── Consent log ── */
+    .log-row { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+    .log-row:last-child { border-bottom: none; }
+    .log-time { color: var(--text-tertiary); width: 52px; flex-shrink: 0; }
+    .log-event { flex: 1; color: var(--text-secondary); }
+    .log-page { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
+    .log-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; white-space: nowrap; }
+    .badge-accept { background: var(--green-light); color: var(--green-dark); }
+    .badge-reject { background: var(--danger-light); color: var(--danger); }
+    .badge-gpc    { background: var(--blue-light); color: #042c53; }
+    .badge-custom { background: var(--bg-secondary); color: var(--text-secondary); }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: var(--warn-light);
+      border: 0.5px solid #f0a060; border-radius: var(--radius-md);
+      margin-bottom: 16px; font-size: 12px; color: var(--warn);
+    }
+    .status-bar strong { font-weight: 500; flex: 1; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 0.5px solid var(--border); padding-bottom: 0; }
+    .tab-btn {
+      padding: 7px 16px; border: none; background: none; font-size: 13px;
+      cursor: pointer; color: var(--text-secondary); font-family: var(--font);
+      border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); font-weight: 500; border-bottom-color: var(--green); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Pricing ── */
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .plan { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+    .plan.featured { border: 1.5px solid var(--green); }
+    .plan-badge { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); margin-bottom: 10px; }
+    .plan-name  { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+    .plan-price { font-size: 28px; font-weight: 500; margin-bottom: 4px; }
+    .plan-price span { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+    .plan-desc  { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .plan-features li { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 7px; }
+    .check { width: 15px; height: 15px; border-radius: 50%; background: var(--green-light); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .check svg { width: 8px; height: 8px; }
+
+    /* ── Docs ── */
+    .doc-step { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--green-dark); flex-shrink: 0; }
+
+    /* ── Footer ── */
+    footer { padding: 20px 28px; border-top: 0.5px solid var(--border); background: var(--bg); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-tertiary); }
+    .footer-logo { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--text); }
+
+    /* ── Scanner ── */
+    .scan-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+
+    /* ── GCM status ── */
+    .gcm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .gcm-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 8px 10px; }
+    .gcm-key { font-size: 10px; color: var(--text-tertiary); font-family: var(--mono); margin-bottom: 3px; }
+    .gcm-val { font-size: 12px; font-weight: 500; }
+    .gcm-denied  { color: var(--danger); }
+    .gcm-granted { color: var(--green); }
+
+    @media (max-width: 600px) {
+      .pricing { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
+      .metrics  { grid-template-columns: repeat(2, 1fr); }
+      .scan-grid { grid-template-columns: repeat(2, 1fr); }
+      .gcm-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <a class="nav-logo" href="#" onclick="showPage('home')">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 5.5v3.5M6 7.5h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </div>
+    Noticeify
+  </a>
+  <div class="nav-links">
+    <button class="nav-link" onclick="showPage('tools')">Dashboard</button>
+    <button class="nav-link" onclick="showPage('scanner')">Scanner</button>
+    <button class="nav-link" onclick="showPage('pricing')">Pricing</button>
+    <button class="nav-link" onclick="showPage('docs')">Docs</button>
+  </div>
+  <div class="nav-cta">
+    <button class="btn" onclick="showPage('tools')">Sign in</button>
+    <button class="btn btn-primary" onclick="showPage('tools')">Get started</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HOME
+════════════════════════════════════════════════ -->
+<div id="page-home" class="page active">
+
+  <div class="hero">
+    <div class="hero-badge"><div class="hero-badge-dot"></div>Privacy compliance for e-commerce</div>
+    <h1>Stop tracking your customers<br>before they <em>say yes</em></h1>
+    <p>Noticeify blocks advertising pixels, analytics scripts, and third-party trackers until your visitor gives affirmative consent — and proves it with a timestamped audit trail.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="showPage('tools')">View dashboard</button>
+      <button class="btn" onclick="showPage('scanner')">Run a free scan</button>
+    </div>
+    <div class="code-block">
+      &lt;<span class="code-tag">script</span><br>
+      &nbsp;&nbsp;<span class="code-attr">src</span>=<span class="code-val">"https://noticeify.pages.dev/consent-loader.js"</span><br>
+      &nbsp;&nbsp;<span class="code-attr">data-client-id</span>=<span class="code-val">"nfy_ocusleep_prod"</span><br>
+      &nbsp;&nbsp;<span class="code-attr">data-domain</span>=<span class="code-val">"ocusleep.com"</span><br>
+      &nbsp;&nbsp;<span class="code-attr">async</span>&gt;&lt;/<span class="code-tag">script</span>&gt;
+    </div>
+  </div>
+
+  <div style="background:var(--bg);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border)">
+    <div class="section">
+      <div class="section-label">What it answers</div>
+      <h2>Three questions every website owner needs to answer</h2>
+      <div class="features" style="margin-top:20px">
+        <div class="feature">
+          <div class="feature-icon" style="background:var(--green-light)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#1a6b4a" stroke-width="1.4"/><path d="M8 5v4l2.5 1.5" stroke="#1a6b4a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>What tracking is on my site?</h3>
+          <p>The scanner crawls every page and builds a full inventory of pixels, analytics scripts, cookies, and iframes — classified by vendor and risk level.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:var(--danger-light)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5v6L8 14 2 11V5L8 2z" stroke="#a32d2d" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6v3M8 10.5v.5" stroke="#a32d2d" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Is any of it firing before consent?</h3>
+          <p>A three-phase Playwright scan loads each page clean, then with consent, and diffs the results — surfacing any vendor that fires before the user clicks Accept.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:var(--blue-light)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="2" stroke="#185fa5" stroke-width="1.4"/><path d="M5.5 6h5M5.5 9h3" stroke="#185fa5" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Can I prove what was consented to?</h3>
+          <p>Every consent event is logged with a timestamp, banner version, policy version, category choices, and GPC signal — exportable as CSV or PDF for legal review.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:var(--warn-light)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M10 5l3 3-3 3" stroke="#c45b00" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Google Consent Mode v2</h3>
+          <p>All consent signals default to denied before GTM loads, then update granularly after the user decides — preserving conversion modeling in denied state.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg-tertiary)">
+    <div class="section">
+      <div class="section-label">Banner</div>
+      <h2>What visitors see</h2>
+      <p class="section-sub">Loads before any non-essential script. No dark patterns. Reject and Accept are equal visual weight.</p>
+      <div class="banner-preview" style="max-width:520px">
+        <div class="banner-header">
+          <div class="banner-icon">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L8.5 3v4L5 9 1.5 7V3L5 1z" stroke="#1a6b4a" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="banner-title">Your privacy choices</span>
+        </div>
+        <div class="banner-body">We use cookies and similar technologies to operate this website, improve performance, understand site usage, and support advertising. Non-essential cookies will not be activated unless you give consent.</div>
+        <div class="banner-links">
+          <a href="#">Privacy Policy</a><span>·</span>
+          <a href="#">Cookie Policy</a><span>·</span>
+          <a href="#">Your Privacy Choices</a>
+        </div>
+        <div class="banner-btns">
+          <button class="btn btn-primary btn-sm">Accept all</button>
+          <button class="btn btn-sm">Reject non-essential</button>
+          <button class="btn btn-sm" style="border-color:transparent;color:var(--text-secondary);font-size:12px">Manage preferences</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     DASHBOARD / TOOLS
+════════════════════════════════════════════════ -->
+<div id="page-tools" class="page">
+  <div class="section">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div class="section-label">Dashboard</div>
+        <h2 style="margin-bottom:0">OcuSleep.com</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--bg);border:0.5px solid var(--border);padding:5px 10px;border-radius:var(--radius-md)">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
+        nfy_ocusleep_prod
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('tab-overview', this)">Overview</button>
+      <button class="tab-btn" onclick="showTab('tab-prefs', this)">Preference center</button>
+      <button class="tab-btn" onclick="showTab('tab-logs', this)">Consent logs</button>
+      <button class="tab-btn" onclick="showTab('tab-gcm', this)">Consent Mode</button>
+    </div>
+
+    <!-- Overview tab -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="status-bar">
+        <strong>Meta Pixel appears to be firing before consent on /checkout. Immediate review recommended.</strong>
+        <button class="btn btn-sm" style="background:var(--warn);color:#fff;border-color:var(--warn);flex-shrink:0" onclick="showPage('scanner')">Review</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-val green">54%</div><div class="metric-label">Acceptance rate</div></div>
+        <div class="metric"><div class="metric-val">31%</div><div class="metric-label">Rejected non-essential</div></div>
+        <div class="metric"><div class="metric-val warn">2</div><div class="metric-label">Pre-consent scripts</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">
+        <div class="card">
+          <div class="card-title">Consent by category (7d)</div>
+          ${[['Analytics','61','var(--green)'],['Marketing','48','var(--green)'],['Personalization','44','var(--green)'],['Support / chat','39','var(--green)'],['Embedded media','35','var(--green)']].map(([l,p,c])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:11px;color:var(--text-secondary);width:90px;flex-shrink:0">${l}</span>
+            <div style="flex:1;height:5px;background:var(--bg-secondary);border-radius:3px;overflow:hidden">
+              <div style="width:${p}%;height:100%;background:${c};border-radius:3px"></div>
+            </div>
+            <span style="font-size:11px;font-weight:500;width:32px;text-align:right">${p}%</span>
+          </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-title">Vendor inventory</div>
+          ${[['Google Analytics 4','analytics','✓ blocked'],['Google Tag Manager','essential','✓ managed'],['Meta Pixel','marketing','⚠ pre-consent',true],['Microsoft Ads','marketing','✓ blocked'],['Klaviyo','marketing','⚠ review',false,true],['Zendesk Chat','support','✓ blocked']].map(([n,cat,status,crit,warn])=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:5px ${crit||warn?'14px':'0'};margin:0 ${crit||warn?'-14px':'0'};border-bottom:0.5px solid var(--border);background:${crit?'var(--danger-light)':warn?'var(--warn-light)':'transparent'}">
+            <span style="flex:1;font-size:12px;${crit||warn?'font-weight:500':''}">${n}</span>
+            <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:var(--bg-secondary);color:var(--text-secondary)">${cat}</span>
+            <span style="font-size:11px;font-weight:500;color:${crit?'var(--danger)':warn?'var(--warn)':'var(--green)'}">${status}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Preference center tab -->
+    <div class="tab-panel" id="tab-prefs">
+      <div class="pref-modal">
+        <div class="pref-header">
+          <div class="pref-title">Manage your privacy preferences</div>
+          <div class="pref-sub">ocusleep.com · Last saved: today at 2:31 PM · Banner v1.0</div>
+        </div>
+        <div class="pref-row" style="opacity:.85">
+          <div class="pref-info">
+            <div class="pref-name">Strictly necessary</div>
+            <div class="pref-desc">Required to operate the website — shopping cart, checkout, authentication, payment processing, and fraud prevention.</div>
+            <div class="pref-vendors">Session cookies, Stripe, Signifyd</div>
+          </div>
+          <span class="always-on">Always on</span>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info"><div class="pref-name">Functional</div><div class="pref-desc">Remembers your preferences, region, and language settings.</div></div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info"><div class="pref-name">Analytics</div><div class="pref-desc">Helps us understand how visitors use the site.</div><div class="pref-vendors">Google Analytics 4, Microsoft Clarity</div></div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info"><div class="pref-name">Marketing & advertising</div><div class="pref-desc">Ad measurement, retargeting, and audience building across websites.</div><div class="pref-vendors">Meta Pixel, Google Ads, Microsoft Ads, Klaviyo</div></div>
+          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info"><div class="pref-name">Support & chat</div><div class="pref-desc">Live chat and customer support widget.</div><div class="pref-vendors">Zendesk Chat</div></div>
+          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-row">
+          <div class="pref-info"><div class="pref-name">Embedded media</div><div class="pref-desc">YouTube and Vimeo video players. May set cookies when activated.</div></div>
+          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="pref-footer">
+          <div class="pref-footer-links">
+            <span>Consent ID: nfy_2xk9f</span>
+            <a href="#">Privacy Policy</a>
+          </div>
+          <div class="pref-footer-btns">
+            <button class="btn btn-sm" onclick="document.querySelectorAll('.pref-row .toggle input').forEach(i=>i.checked=false)">Reject all</button>
+            <button class="btn btn-primary btn-sm">Save preferences</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consent logs tab -->
+    <div class="tab-panel" id="tab-logs">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:12px;font-weight:500">Recent consent events</span>
+          <button class="btn btn-sm">Export CSV</button>
+        </div>
+        <div class="log-row"><span class="log-time">2:41 PM</span><span class="log-event">User accepted all categories</span><span class="log-page">/checkout</span><span class="log-badge badge-accept">accept all</span></div>
+        <div class="log-row"><span class="log-time">2:38 PM</span><span class="log-event">GPC signal detected — marketing denied</span><span class="log-page">/sleep-glasses</span><span class="log-badge badge-gpc">GPC</span></div>
+        <div class="log-row"><span class="log-time">2:35 PM</span><span class="log-event">User rejected non-essential</span><span class="log-page">/cart</span><span class="log-badge badge-reject">rejected</span></div>
+        <div class="log-row"><span class="log-time">2:31 PM</span><span class="log-event">Custom: analytics only</span><span class="log-page">/</span><span class="log-badge badge-custom">custom</span></div>
+        <div class="log-row"><span class="log-time">2:28 PM</span><span class="log-event">User accepted all categories</span><span class="log-page">/checkout</span><span class="log-badge badge-accept">accept all</span></div>
+      </div>
+    </div>
+
+    <!-- Google Consent Mode tab -->
+    <div class="tab-panel" id="tab-gcm">
+      <div class="card">
+        <div class="card-title">Google Consent Mode v2 — current state</div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Default state (before consent). All signals denied until the user makes a choice.</p>
+        <div class="gcm-grid">
+          <div class="gcm-item"><div class="gcm-key">ad_storage</div><div class="gcm-val gcm-denied">denied</div></div>
+          <div class="gcm-item"><div class="gcm-key">analytics_storage</div><div class="gcm-val gcm-granted">granted</div></div>
+          <div class="gcm-item"><div class="gcm-key">ad_user_data</div><div class="gcm-val gcm-denied">denied</div></div>
+          <div class="gcm-item"><div class="gcm-key">ad_personalization</div><div class="gcm-val gcm-denied">denied</div></div>
+          <div class="gcm-item"><div class="gcm-key">functionality_storage</div><div class="gcm-val gcm-granted">granted</div></div>
+          <div class="gcm-item"><div class="gcm-key">personalization_storage</div><div class="gcm-val gcm-denied">denied</div></div>
+          <div class="gcm-item"><div class="gcm-key">security_storage</div><div class="gcm-val gcm-granted">granted</div></div>
+          <div class="gcm-item"><div class="gcm-key">wait_for_update</div><div class="gcm-val" style="color:var(--text-secondary)">500ms</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">GTM container</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+          <span style="color:var(--text-secondary)">Container ID</span>
+          <span style="font-family:var(--mono);font-size:11px">GTM-NQB7D7L</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:8px">
+          <span style="color:var(--text-secondary)">Consent initialization tag</span>
+          <span style="color:var(--warn);font-size:11px;font-weight:500">⚠ not detected</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:8px">
+          <span style="color:var(--text-secondary)">url_passthrough</span>
+          <span style="color:var(--green);font-size:11px;font-weight:500">✓ enabled</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-top:8px">
+          <span style="color:var(--text-secondary)">ads_data_redaction</span>
+          <span style="color:var(--green);font-size:11px;font-weight:500">✓ enabled</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCANNER
+════════════════════════════════════════════════ -->
+<div id="page-scanner" class="page">
+  <div class="section">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="section-label">Scanner</div>
+        <h2 style="margin-bottom:4px">Pre-consent pixel scanner</h2>
+        <p style="font-size:12px;color:var(--text-secondary)">Last scan: Apr 29, 2026 · 47 URLs crawled · ocusleep.com</p>
+      </div>
+      <button class="btn btn-primary btn-sm">Run new scan</button>
+    </div>
+
+    <div class="scan-grid">
+      <div class="metric"><div class="metric-val">47</div><div class="metric-label">Pages crawled</div></div>
+      <div class="metric"><div class="metric-val">11</div><div class="metric-label">Third-party domains</div></div>
+      <div class="metric"><div class="metric-val danger">2</div><div class="metric-label">Pre-consent fires</div></div>
+      <div class="metric"><div class="metric-val warn">1</div><div class="metric-label">Unclassified</div></div>
+    </div>
+
+    <div style="font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:10px">Findings requiring attention</div>
+
+    <div class="finding">
+      <span class="risk-badge r-critical">Critical</span>
+      <div>
+        <div class="finding-title">Meta Pixel firing before affirmative consent</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">The Meta Pixel was observed sending network requests before a consent choice was recorded on the /checkout page.</div>
+        <div class="finding-url">connect.facebook.net/en_US/fbevents.js · detected on /checkout, /cart</div>
+      </div>
+    </div>
+    <div class="finding">
+      <span class="risk-badge r-high">High</span>
+      <div>
+        <div class="finding-title">Klaviyo onsite script not fully gated</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">The Klaviyo identify/track script loads from a GTM custom HTML tag that fires outside the Noticeify vendor registry.</div>
+        <div class="finding-url">static.klaviyo.com/onsite/js/klaviyo.js · source: GTM custom HTML tag</div>
+      </div>
+    </div>
+    <div class="finding">
+      <span class="risk-badge r-moderate">Moderate</span>
+      <div>
+        <div class="finding-title">Zendesk chat script loads before user opens chat</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">Correctly blocked in the vendor registry, but confirm the GTM trigger does not bypass the consent gate.</div>
+        <div class="finding-url">static.zdassets.com/ekr/snippet.js · 39 of 47 pages</div>
+      </div>
+    </div>
+    <div class="finding">
+      <span class="risk-badge r-low">Low</span>
+      <div>
+        <div class="finding-title">1 unclassified third-party script detected</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">An external script was detected but is not present in the Noticeify vendor registry. Classify and assign a consent category.</div>
+        <div class="finding-url">cdn.justuno.com/visitorv2.js · source: GTM · /frames, /sunglasses</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm">Run new scan</button>
+      <button class="btn btn-sm">Export PDF report</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PRICING
+════════════════════════════════════════════════ -->
+<div id="page-pricing" class="page">
+  <div class="section">
+    <div class="section-label">Pricing</div>
+    <h2>Simple, transparent pricing</h2>
+    <p class="section-sub">One platform, multiple sites. No per-pageview charges.</p>
+    <div class="pricing">
+      <div class="plan">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">$0<span>/mo</span></div>
+        <div class="plan-desc">One website. Perfect for getting started.</div>
+        <ul class="plan-features">
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>1 website</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Banner + preference center</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Consent logging</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC detection</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Google Consent Mode v2</li>
+        </ul>
+        <button class="btn" style="width:100%" onclick="showPage('docs')">Get started</button>
+      </div>
+      <div class="plan featured">
+        <div class="plan-badge">Most popular</div>
+        <div class="plan-name">Business</div>
+        <div class="plan-price">$49<span>/mo</span></div>
+        <div class="plan-desc">Up to 5 websites with full scanner and exports.</div>
+        <ul class="plan-features">
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>5 websites</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Weekly automated scanner</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>CSV + PDF exports</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Slack critical alerts</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Healthcare-adjacent mode</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%">Start free trial</button>
+      </div>
+      <div class="plan">
+        <div class="plan-name">Agency</div>
+        <div class="plan-price">$149<span>/mo</span></div>
+        <div class="plan-desc">Unlimited websites. White-label ready.</div>
+        <ul class="plan-features">
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Unlimited websites</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>White-label banner</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Legal-ready PDF reports</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Priority support</li>
+          <li><div class="check"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Multi-team access</li>
+        </ul>
+        <button class="btn" style="width:100%">Contact us</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     DOCS
+════════════════════════════════════════════════ -->
+<div id="page-docs" class="page">
+  <div class="section">
+    <div class="section-label">Quick start</div>
+    <h2>Get Noticeify running in 3 steps</h2>
+    <p class="section-sub">Works on any website. Shopify, WordPress, or custom HTML.</p>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="doc-step">
+        <div class="step-num">1</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Add the embed tag</h3>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Place this as the very first script in &lt;head&gt;, before GTM and any other tag. On Shopify, add it to theme.liquid.</p>
+          <div class="code-block" style="max-width:100%">
+            &lt;<span class="code-tag">script</span><br>
+            &nbsp;&nbsp;<span class="code-attr">src</span>=<span class="code-val">"https://noticeify.pages.dev/consent-loader.js"</span><br>
+            &nbsp;&nbsp;<span class="code-attr">data-client-id</span>=<span class="code-val">"nfy_ocusleep_prod"</span><br>
+            &nbsp;&nbsp;<span class="code-attr">data-domain</span>=<span class="code-val">"ocusleep.com"</span><br>
+            &nbsp;&nbsp;<span class="code-attr">async</span>&gt;&lt;/<span class="code-tag">script</span>&gt;
+          </div>
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="step-num">2</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Gate your vendor scripts</h3>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Move all non-essential scripts into the vendor registry. Noticeify only loads them after the user grants that category.</p>
+          <div class="code-block" style="max-width:100%">
+            <span style="color:var(--text-tertiary)">// Check consent before firing any pixel</span><br>
+            if (window.Noticeify.hasConsent(<span class="code-val">'marketing'</span>)) {<br>
+            &nbsp;&nbsp;loadMetaPixel();<br>
+            }<br><br>
+            <span style="color:var(--text-tertiary)">// React to consent changes</span><br>
+            window.Noticeify.onConsentChange(({ categories }) => {<br>
+            &nbsp;&nbsp;if (categories?.analytics) initGA4();<br>
+            });
+          </div>
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="step-num">3</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px;font-weight:500;margin-bottom:5px">Add the footer privacy link</h3>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Give returning visitors a way to update their preferences at any time. Required by CCPA.</p>
+          <div class="code-block" style="max-width:100%">
+            &lt;<span class="code-tag">a</span> <span class="code-attr">href</span>=<span class="code-val">"#"</span><br>
+            &nbsp;&nbsp;<span class="code-attr">onclick</span>=<span class="code-val">"window.Noticeify.openPreferences();return false"</span>&gt;<br>
+            &nbsp;&nbsp;Your Privacy Choices<br>
+            &lt;/<span class="code-tag">a</span>&gt;
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;padding:16px 18px;background:var(--blue-light);border-radius:var(--radius-lg);border:0.5px solid rgba(24,95,165,.2)">
+      <div style="font-size:12px;font-weight:500;color:var(--blue);margin-bottom:4px">Shopify-specific note</div>
+      <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">In Shopify, go to <strong>Online Store → Themes → Edit code → layout/theme.liquid</strong>. Paste the embed tag immediately after the opening <code style="font-family:var(--mono);font-size:11px">&lt;head&gt;</code> tag, before any other script. GTM must load after Noticeify.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">
+    <div class="logo-mark" style="width:20px;height:20px;border-radius:6px">
+      <svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px"><path d="M8 1.5L13 4.5v7L8 14.5 3 11.5v-7L8 1.5z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    </div>
+    Noticeify
+  </div>
+  <span>Designed to support privacy compliance. Not legal advice.</span>
+  <span>noticeify.com</span>
+</footer>
+
+<script>
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+    const page = document.getElementById('page-' + id);
+    if (page) page.classList.add('active');
+    const btn = document.querySelector(`.nav-link[onclick="showPage('${id}')"]`);
+    if (btn) btn.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function showTab(id, btn) {
+    const container = btn.closest('.page') || document;
+    container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const panel = document.getElementById(id);
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
