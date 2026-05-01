@@ -22,9 +22,14 @@ import rateLimit     from 'express-rate-limit';
 import { healthCheck } from './db/pool.js';
 import consentRoutes   from './routes/consent.js';
 import scannerRoutes   from './routes/scanner.js';
+import { startScannerWorker } from './scanner/worker.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
+
+if (process.env.NODE_ENV === 'production' && !process.env.IP_HASH_SALT) {
+  throw new Error('IP_HASH_SALT is required when NODE_ENV=production');
+}
 
 // ---------------------------------------------------------------------------
 // Trust proxy (required for correct req.ip behind Nginx / Cloudflare)
@@ -61,6 +66,13 @@ app.use('/api/v1/consent', cors({
   maxAge: 86400, // cache preflight for 24h
 }));
 
+app.use('/api/v1/scanner', cors({
+  origin:  corsOrigins,
+  methods: ['POST', 'GET', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  maxAge: 86400,
+}));
+
 // ---------------------------------------------------------------------------
 // Body parsing
 // ---------------------------------------------------------------------------
@@ -95,9 +107,18 @@ const dashboardReadLimit = rateLimit({
   message:          { error: 'rate_limit_exceeded', retryAfter: 60 },
 });
 
+const scannerRunLimit = rateLimit({
+  windowMs:         60_000,
+  max:              10,
+  standardHeaders:  true,
+  legacyHeaders:    false,
+  message:          { error: 'rate_limit_exceeded', retryAfter: 60 },
+});
+
 app.use('/api/v1/consent',        consentWriteLimit);
 app.use('/api/v1/consent/stats',  dashboardReadLimit);
 app.use('/api/v1/consent/export', dashboardReadLimit);
+app.use('/api/v1/scanner/run',    scannerRunLimit);
 
 // ---------------------------------------------------------------------------
 // Routes
@@ -144,6 +165,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`[Noticeify API] Listening on port ${PORT}`);
   console.log(`[Noticeify API] NODE_ENV=${process.env.NODE_ENV || 'development'}`);
+  startScannerWorker().catch((err) => {
+    console.error('[Noticeify API] Scanner worker startup failed:', err.message);
+  });
 });
 
 export default app;
