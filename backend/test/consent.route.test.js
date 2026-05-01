@@ -38,25 +38,29 @@ test('geoLookup returns nulls for localhost inputs', async () => {
 
 test('geoLookup maps country/region from provider response', async () => {
   const oldFetch = global.fetch;
-  global.fetch = async () => ({
-    ok: true,
-    json: async () => ({ country_code: 'us', region_code: 'ca' }),
-  });
+  try {
+    global.fetch = async () => ({
+      ok: true,
+      json: async () => ({ country_code: 'us', region_code: 'ca' }),
+    });
 
-  const result = await geoLookup('198.51.100.24');
-  assert.deepEqual(result, { countryCode: 'US', regionCode: 'CA' });
-
-  global.fetch = oldFetch;
+    const result = await geoLookup('198.51.100.24');
+    assert.deepEqual(result, { countryCode: 'US', regionCode: 'CA' });
+  } finally {
+    global.fetch = oldFetch;
+  }
 });
 
 test('geoLookup fails open on provider errors', async () => {
   const oldFetch = global.fetch;
-  global.fetch = async () => {
-    throw new Error('network down');
-  };
+  try {
+    global.fetch = async () => {
+      throw new Error('network down');
+    };
 
-  const result = await geoLookup('198.51.100.25');
-  assert.deepEqual(result, { countryCode: null, regionCode: null });
-
-  global.fetch = oldFetch;
+    const result = await geoLookup('198.51.100.25');
+    assert.deepEqual(result, { countryCode: null, regionCode: null });
+  } finally {
+    global.fetch = oldFetch;
+  }
 });
