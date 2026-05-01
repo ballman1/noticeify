@@ -11,7 +11,7 @@
   --bg:#fff;--bg2:#f8f8f5;--bg3:#f1f0eb;
   --text:#111;--text2:#52524e;--text3:#98988e;
   --b:rgba(0,0,0,.09);--b2:rgba(0,0,0,.16);
-  --green:#1a6b4a;--gl:#e6f4ef;--gd:#0d4a33;--gm:#14532d;
+  --green:#0023B0;--gl:#e8edff;--gd:#001280;--gm:#001a8a;
   --blue:#185fa5;--bl:#e8f1fb;
   --warn:#c45b00;--wl:#fff3e6;
   --danger:#a32d2d;--dl:#fcebeb;
@@ -23,7 +23,7 @@
   --bg:#181816;--bg2:#202020;--bg3:#272725;
   --text:#eeeee8;--text2:#aaa9a2;--text3:#666660;
   --b:rgba(255,255,255,.08);--b2:rgba(255,255,255,.15);
-  --gl:#0c2b1a;--gd:#7ecfaa;--bl:#0b1e35;--wl:#251500;--dl:#260d0d;
+  --gl:#0a1240;--gd:#7b9fff;--bl:#0b1e35;--wl:#251500;--dl:#260d0d;
 }}
 html{scroll-behavior:smooth}
 body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;line-height:1.6}
@@ -32,8 +32,8 @@ button{font-family:var(--f);cursor:pointer}
 
 /* NAV */
 .nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:50px;background:var(--bg);border-bottom:.5px solid var(--b);position:sticky;top:0;z-index:300}
-.logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--text);text-decoration:none}
-.logo-mark{width:26px;height:26px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center}
+.logo{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;color:#0d1b3e;text-decoration:none}
+.logo-mark{display:flex;align-items:center;justify-content:center}
 .logo-mark svg{width:14px;height:14px}
 .nav-links{display:flex;gap:2px}
 .nl{padding:5px 11px;border-radius:var(--r);border:none;background:none;font-size:12px;color:var(--text2);transition:background .1s,color .1s}
@@ -111,7 +111,7 @@ hr{border:none;border-top:.5px solid var(--b)}
 /* ALERTS */
 .alert{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:var(--r);margin-bottom:13px;font-size:12px}
 .aw{background:var(--wl);border:.5px solid #f0a060;color:var(--warn)}
-.ag{background:var(--gl);border:.5px solid #8ecfb0;color:var(--gd)}
+.ag{background:var(--gl);border:.5px solid #6680e0;color:var(--gd)}
 .alert strong{font-weight:500;flex:1}
 .abtn{padding:4px 10px;border-radius:5px;border:none;font-size:11px;cursor:pointer;font-family:var(--f)}
 
@@ -235,8 +235,7 @@ hr{border:none;border-top:.5px solid var(--b)}
 
 <nav class="nav">
   <a class="logo" href="#" onclick="show('home');return false">
-    <div class="logo-mark"><svg viewBox="0 0 14 14" fill="none"><path d="M7 1.5L11.5 4v6L7 12.5 2.5 10V4L7 1.5z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5v3.5M5.5 7h3" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></div>
-    Noticeify
+    <img src="/noticeify-logo.png" style="height:32px;width:auto;display:block" alt="Noticeify"/>
   </a>
   <div class="nav-links">
     <button class="nl" onclick="show('features')">Features</button>
@@ -279,15 +278,15 @@ hr{border:none;border-top:.5px solid var(--b)}
     <div class="st">Everything you need — plus pixel blocking that actually works</div>
     <p class="ss">Most consent platforms display a banner but don't block anything. Noticeify intercepts scripts at the loader level before any tag fires.</p>
     <div class="fg">
-      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L13 5v6L8 14 3 11V5L8 2z" stroke="#1a6b4a" stroke-width="1.3" stroke-linejoin="round"/></svg></div><h3>Cookie consent banner</h3><p>GDPR, CCPA, and US State Laws. Geo-targeted, mobile responsive, accessible. No dark patterns.</p></div>
+      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L13 5v6L8 14 3 11V5L8 2z" stroke="#0023B0" stroke-width="1.3" stroke-linejoin="round"/></svg></div><h3>Cookie consent banner</h3><p>GDPR, CCPA, and US State Laws. Geo-targeted, mobile responsive, accessible. No dark patterns.</p></div>
       <div class="fc"><div class="fi" style="background:var(--dl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#a32d2d" stroke-width="1.3"/><path d="M6 6l4 4M10 6l-4 4" stroke="#a32d2d" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Pre-consent pixel blocking</h3><p>Meta Pixel, Google Ads, TikTok, Klaviyo, and 20+ vendors are blocked at the script level until consent is given.</p></div>
       <div class="fc"><div class="fi" style="background:var(--bl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="2" stroke="#185fa5" stroke-width="1.3"/><path d="M5.5 6h5M5.5 9h3" stroke="#185fa5" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Consent log &amp; audit trail</h3><p>Every event timestamped with banner version, category choices, and GPC signal. Export as CSV or PDF.</p></div>
       <div class="fc"><div class="fi" style="background:var(--wl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13l4-8 3 5 2-3 2 6" stroke="#c45b00" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Reports &amp; analytics</h3><p>Consent trends, acceptance rates by category, pageview data, and GPC detection rates — all in one dashboard.</p></div>
       <div class="fc"><div class="fi" style="background:#f0ebfc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#5b35a0" stroke-width="1.3"/><path d="M6 6l2 4 2-4" stroke="#5b35a0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Automated scanner</h3><p>Weekly scans detect new pixels firing before consent. Critical findings trigger instant Slack alerts.</p></div>
-      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M3 5h10M5 11h6" stroke="#1a6b4a" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Google Consent Mode v2</h3><p>All signals denied before GTM loads. Updates granularly after user consent — preserving conversion modeling.</p></div>
+      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M3 5h10M5 11h6" stroke="#0023B0" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Google Consent Mode v2</h3><p>All signals denied before GTM loads. Updates granularly after user consent — preserving conversion modeling.</p></div>
       <div class="fc"><div class="fi" style="background:var(--bl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#185fa5" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="#185fa5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Geo-targeting</h3><p>Show the banner only to visitors in specific states or countries. California, Florida, EU, or worldwide.</p></div>
       <div class="fc"><div class="fi" style="background:var(--dl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5v6L8 14 2 11V5L8 2z" stroke="#a32d2d" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3M8 10.5v.5" stroke="#a32d2d" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Healthcare-adjacent mode</h3><p>Stricter controls for prescription, sleep, and vision products. Marketing pixels blocked on sensitive pages.</p></div>
-      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#1a6b4a" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="#1a6b4a" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>You own your data</h3><p>Consent records live in your own Supabase database. No vendor lock-in. Export anytime, cancel anytime.</p></div>
+      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0023B0" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="#0023B0" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>You own your data</h3><p>Consent records live in your own Supabase database. No vendor lock-in. Export anytime, cancel anytime.</p></div>
     </div>
   </div>
   <hr/>
@@ -298,14 +297,14 @@ hr{border:none;border-top:.5px solid var(--b)}
         <div class="st">What your visitors see</div>
         <p class="ss">Loads before any non-essential script. Reject and Accept are equal visual weight.</p>
         <div style="display:flex;flex-direction:column;gap:7px">
-          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>GDPR opt-in and CCPA opt-out modes</div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Keyboard navigable, screen reader compatible</div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC auto-detection and denial</div>
-          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Shadow DOM — zero style conflicts with your theme</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>GDPR opt-in and CCPA opt-out modes</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Keyboard navigable, screen reader compatible</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC auto-detection and denial</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Shadow DOM — zero style conflicts with your theme</div>
         </div>
       </div>
       <div class="bnr">
-        <div class="bh"><div class="bic"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 1L7 2.5v4L4.5 8 2 6.5v-4L4.5 1z" stroke="#1a6b4a" stroke-width="1.1" stroke-linejoin="round"/></svg></div><span class="btitle">Your privacy choices</span></div>
+        <div class="bh"><div class="bic"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 1L7 2.5v4L4.5 8 2 6.5v-4L4.5 1z" stroke="#0023B0" stroke-width="1.1" stroke-linejoin="round"/></svg></div><span class="btitle">Your privacy choices</span></div>
         <div class="bbody">We use cookies and similar technologies to operate this website, improve performance, and support advertising. Non-essential cookies will not be activated unless you give consent.</div>
         <div class="blinks"><a href="#">Privacy Policy</a><span>·</span><a href="#">Cookie Policy</a><span>·</span><a href="#">Your Privacy Choices</a></div>
         <div class="bbtns"><button class="btn btn-g btn-sm">Accept all</button><button class="btn btn-sm">Reject non-essential</button><button class="btn btn-sm" style="border-color:transparent;color:var(--text2)">Manage preferences</button></div>
@@ -323,7 +322,7 @@ hr{border:none;border-top:.5px solid var(--b)}
       </table>
     </div>
   </div>
-  <div style="padding:52px 24px;text-align:center;background:var(--gl);border-top:.5px solid #8ecfb0">
+  <div style="padding:52px 24px;text-align:center;background:var(--gl);border-top:.5px solid #6680e0">
     <div style="max-width:500px;margin:0 auto">
       <div style="font-size:20px;font-weight:600;margin-bottom:8px">Ready to stop pre-consent tracking?</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:22px">Add one script tag to your Shopify theme.liquid and Noticeify handles the rest. Free plan — no credit card required.</p>
@@ -386,13 +385,13 @@ hr{border:none;border-top:.5px solid var(--b)}
             <div class="ct2">Consent trends — 7 days</div>
             <div class="dw"><svg width="88" height="88" viewBox="0 0 88 88">
       <circle cx="44" cy="44" r="30" fill="none" stroke="var(--bg3)" stroke-width="14"/>
-      <circle cx="44" cy="44" r="30" fill="none" stroke="#1a6b4a" stroke-width="14" stroke-dasharray="101.8 86.7" stroke-dashoffset="-8"/>
+      <circle cx="44" cy="44" r="30" fill="none" stroke="#0023B0" stroke-width="14" stroke-dasharray="101.8 86.7" stroke-dashoffset="-8"/>
       <circle cx="44" cy="44" r="30" fill="none" stroke="#e8b4a0" stroke-width="14" stroke-dasharray="58.4 130.1" stroke-dashoffset="-107.8"/>
       <circle cx="44" cy="44" r="30" fill="none" stroke="#a0c4e8" stroke-width="14" stroke-dasharray="28.3 160.2" stroke-dashoffset="-166.2"/>
       <text x="44" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text)">1,368</text>
       <text x="44" y="53" text-anchor="middle" font-size="8" fill="var(--text3)">consents</text>
     </svg>
-              <div class="dl2"><div class="dli"><div class="dld" style="background:#1a6b4a"></div>Accepted 54%</div><div class="dli"><div class="dld" style="background:#e8b4a0"></div>Rejected 31%</div><div class="dli"><div class="dld" style="background:#a0c4e8"></div>Partial 15%</div></div>
+              <div class="dl2"><div class="dli"><div class="dld" style="background:#0023B0"></div>Accepted 54%</div><div class="dli"><div class="dld" style="background:#e8b4a0"></div>Rejected 31%</div><div class="dli"><div class="dld" style="background:#a0c4e8"></div>Partial 15%</div></div>
             </div>
           </div>
           <div class="card">
@@ -414,12 +413,12 @@ hr{border:none;border-top:.5px solid var(--b)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
           <div class="card"><div class="ct2">Consent trends — 7 days</div><div class="dw"><svg width="92" height="92" viewBox="0 0 92 92">
       <circle cx="46" cy="46" r="32" fill="none" stroke="var(--bg3)" stroke-width="15"/>
-      <circle cx="46" cy="46" r="32" fill="none" stroke="#1a6b4a" stroke-width="15" stroke-dasharray="108.6 92.5" stroke-dashoffset="-8"/>
+      <circle cx="46" cy="46" r="32" fill="none" stroke="#0023B0" stroke-width="15" stroke-dasharray="108.6 92.5" stroke-dashoffset="-8"/>
       <circle cx="46" cy="46" r="32" fill="none" stroke="#e8b4a0" stroke-width="15" stroke-dasharray="62.3 138.8" stroke-dashoffset="-114.6"/>
       <circle cx="46" cy="46" r="32" fill="none" stroke="#a0c4e8" stroke-width="15" stroke-dasharray="30.2 170.9" stroke-dashoffset="-176.9"/>
       <text x="46" y="44" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text)">1,368</text>
       <text x="46" y="55" text-anchor="middle" font-size="8" fill="var(--text3)">consents</text>
-    </svg><div class="dl2"><div class="dli"><div class="dld" style="background:#1a6b4a"></div>Accepted — 742</div><div class="dli"><div class="dld" style="background:#e8b4a0"></div>Rejected — 424</div><div class="dli"><div class="dld" style="background:#a0c4e8"></div>Partial — 202</div></div></div></div>
+    </svg><div class="dl2"><div class="dli"><div class="dld" style="background:#0023B0"></div>Accepted — 742</div><div class="dli"><div class="dld" style="background:#e8b4a0"></div>Rejected — 424</div><div class="dli"><div class="dld" style="background:#a0c4e8"></div>Partial — 202</div></div></div></div>
           <div class="card"><div class="ct2">Pageviews — Apr 24–30</div><div style="font-size:20px;font-weight:600;margin-bottom:12px">118,066</div><div class="bc" style="height:100px"><div class="bcol" style="height:85%;background:var(--bl);border-top:2px solid var(--blue)"></div><div class="bcol" style="height:92%;background:var(--bl);border-top:2px solid var(--blue)"></div><div class="bcol" style="height:78%;background:var(--bl);border-top:2px solid var(--blue)"></div><div class="bcol" style="height:88%;background:var(--bl);border-top:2px solid var(--blue)"></div><div class="bcol" style="height:75%;background:var(--bl);border-top:2px solid var(--blue)"></div><div class="bcol" style="height:68%;background:var(--bl);border-top:2px solid var(--blue)"></div><div class="bcol" style="height:42%;background:var(--bl);border-top:2px solid var(--blue)"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px"><span>Apr25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>May1</span></div></div>
         </div>
@@ -448,7 +447,7 @@ hr{border:none;border-top:.5px solid var(--b)}
               <div style="background:var(--bg2);height:36px;border-radius:5px;opacity:.3;margin-bottom:7px"></div>
               <div style="background:var(--bg2);height:5px;border-radius:3px;opacity:.2;width:55%"></div>
               <div class="bnr" style="margin-top:14px">
-                <div class="bh"><div class="bic"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 1L7 2.5v4L4.5 8 2 6.5v-4L4.5 1z" stroke="#1a6b4a" stroke-width="1.1" stroke-linejoin="round"/></svg></div><span class="btitle">Your privacy choices</span></div>
+                <div class="bh"><div class="bic"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 1L7 2.5v4L4.5 8 2 6.5v-4L4.5 1z" stroke="#0023B0" stroke-width="1.1" stroke-linejoin="round"/></svg></div><span class="btitle">Your privacy choices</span></div>
                 <div class="bbody" style="font-size:11px">Non-essential cookies will not be activated unless you give consent.</div>
                 <div class="bbtns"><button class="btn btn-g btn-sm">Accept All</button><button class="btn btn-sm">Reject</button><button class="btn btn-sm" style="border-color:transparent">Manage</button></div>
               </div>
@@ -576,7 +575,7 @@ hr{border:none;border-top:.5px solid var(--b)}
 <!-- ═══ SIGN UP ═══ -->
 <div id="pg-signup" class="pg">
   <div style="max-width:480px;margin:0 auto;padding:36px 22px">
-    <div style="text-align:center;margin-bottom:26px"><div class="logo" style="justify-content:center;margin-bottom:10px"><div class="logo-mark"><svg viewBox="0 0 14 14" fill="none"><path d="M7 1.5L11.5 4v6L7 12.5 2.5 10V4L7 1.5z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5v3.5M5.5 7h3" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></div>Noticeify</div><h2 style="font-size:17px;font-weight:600;margin-bottom:5px">Get started in 2 minutes</h2><p style="font-size:13px;color:var(--text2)">Free plan — no credit card required.</p></div>
+    <div style="text-align:center;margin-bottom:26px"><div class="logo" style="justify-content:center;margin-bottom:10px"><img src="/noticeify-logo.png" style="height:28px;width:auto;display:block" alt="Noticeify"/></div><h2 style="font-size:17px;font-weight:600;margin-bottom:5px">Get started in 2 minutes</h2><p style="font-size:13px;color:var(--text2)">Free plan — no credit card required.</p></div>
     <div class="card"><div style="display:flex;flex-direction:column;gap:13px">
       <div><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Your website URL</label><input placeholder="https://yourstore.myshopify.com" style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/></div>
       <div><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Platform</label><select style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"><option>Shopify</option><option>WordPress</option><option>Custom HTML</option><option>Other</option></select></div>
@@ -596,12 +595,12 @@ hr{border:none;border-top:.5px solid var(--b)}
     <div class="st" style="font-size:22px">Everything you need for privacy compliance</div>
     <p class="ss">Built for Shopify and e-commerce. Makes compliance easier without slowing down your store.</p>
     <div class="fg">
-      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#1a6b4a" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="#1a6b4a" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>CCPA, GDPR &amp; US State Laws</h3><p>Covers all US state privacy laws including California, Florida, Texas, Virginia, Colorado, and more.</p></div>
+      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#0023B0" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="#0023B0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>CCPA, GDPR &amp; US State Laws</h3><p>Covers all US state privacy laws including California, Florida, Texas, Virginia, Colorado, and more.</p></div>
       <div class="fc"><div class="fi" style="background:var(--dl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M3 5h10M5 11h6" stroke="#a32d2d" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Script-level blocking</h3><p>Non-essential scripts are never injected into the DOM before consent. Not hidden — genuinely blocked.</p></div>
       <div class="fc"><div class="fi" style="background:var(--bl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#185fa5" stroke-width="1.3"/><path d="M8 5v3l2 1.5" stroke="#185fa5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Weekly automated scanner</h3><p>Runs every Monday via GitHub Actions. Detects new pixels added to GTM or theme.liquid since the last scan.</p></div>
       <div class="fc"><div class="fi" style="background:var(--wl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 5v6L8 14 2 11V5L8 2z" stroke="#c45b00" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3M8 10.5v.5" stroke="#c45b00" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>GPC signal detection</h3><p>Detects navigator.globalPrivacyControl automatically and denies marketing consent — no configuration needed.</p></div>
       <div class="fc"><div class="fi" style="background:#f0ebfc"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="#5b35a0" stroke-width="1.3"/><path d="M5 7h6M5 9.5h4" stroke="#5b35a0" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>Legal-ready exports</h3><p>CSV and PDF exports with timestamp, banner version, policy version, and proof of consent per record.</p></div>
-      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#1a6b4a" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="#1a6b4a" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>You own your data</h3><p>Consent records live in your own Supabase database. Export anytime. No vendor lock-in. Cancel anytime.</p></div>
+      <div class="fc"><div class="fi" style="background:var(--gl)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0023B0" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="#0023B0" stroke-width="1.3" stroke-linecap="round"/></svg></div><h3>You own your data</h3><p>Consent records live in your own Supabase database. Export anytime. No vendor lock-in. Cancel anytime.</p></div>
     </div>
   </div>
 </div>
@@ -613,9 +612,9 @@ hr{border:none;border-top:.5px solid var(--b)}
     <div class="st" style="font-size:22px;text-align:center">Simple, transparent pricing</div>
     <p class="ss" style="text-align:center;margin-bottom:28px">One platform, multiple Shopify stores. No per-pageview charges.</p>
     <div class="pg2">
-      <div class="plan"><div class="pn">Starter</div><div class="pp">$0<span>/mo</span></div><div class="pd">One website. Perfect for getting started.</div><ul class="pf"><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>1 website</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Banner + preference center</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Consent logging (365 days)</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC detection</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Google Consent Mode v2</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Shopify native install</li></ul><button class="btn btn-og" style="width:100%" onclick="show('signup')">Get started free</button></div>
-      <div class="plan feat"><div class="pb">Most popular</div><div class="pn">Business</div><div class="pp">$49<span>/mo</span></div><div class="pd">Up to 5 websites with full scanner and exports.</div><ul class="pf"><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>5 websites</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Weekly automated scanner</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>CSV + PDF exports</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Slack critical alerts</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Healthcare-adjacent mode</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Geo-targeting (state/country)</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microsoft Consent Mode</li></ul><button class="btn btn-g" style="width:100%" onclick="show('signup')">Start free trial</button></div>
-      <div class="plan"><div class="pn">Agency</div><div class="pp">$149<span>/mo</span></div><div class="pd">Unlimited websites. White-label ready.</div><ul class="pf"><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Unlimited websites</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>White-label banner</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Legal-ready PDF reports</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Priority support</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>Multi-team access</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#1a6b4a" stroke-width="1.2" stroke-linecap="round"/></svg></div>API access</li></ul><button class="btn" style="width:100%">Contact us</button></div>
+      <div class="plan"><div class="pn">Starter</div><div class="pp">$0<span>/mo</span></div><div class="pd">One website. Perfect for getting started.</div><ul class="pf"><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>1 website</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Banner + preference center</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Consent logging (365 days)</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>GPC detection</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Google Consent Mode v2</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Shopify native install</li></ul><button class="btn btn-og" style="width:100%" onclick="show('signup')">Get started free</button></div>
+      <div class="plan feat"><div class="pb">Most popular</div><div class="pn">Business</div><div class="pp">$49<span>/mo</span></div><div class="pd">Up to 5 websites with full scanner and exports.</div><ul class="pf"><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>5 websites</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Weekly automated scanner</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>CSV + PDF exports</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Slack critical alerts</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Healthcare-adjacent mode</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Geo-targeting (state/country)</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Microsoft Consent Mode</li></ul><button class="btn btn-g" style="width:100%" onclick="show('signup')">Start free trial</button></div>
+      <div class="plan"><div class="pn">Agency</div><div class="pp">$149<span>/mo</span></div><div class="pd">Unlimited websites. White-label ready.</div><ul class="pf"><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Unlimited websites</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>White-label banner</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Legal-ready PDF reports</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Priority support</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>Multi-team access</li><li class="pfi"><div class="ci"><svg viewBox="0 0 8 8" fill="none"><path d="M1.5 4l2 2 3-3" stroke="#0023B0" stroke-width="1.2" stroke-linecap="round"/></svg></div>API access</li></ul><button class="btn" style="width:100%">Contact us</button></div>
     </div>
     <div style="margin-top:26px;background:var(--bg2);border-radius:var(--rl);padding:16px 20px;border:.5px solid var(--b)"><div style="font-size:12px;font-weight:600;margin-bottom:3px">Noticeify vs CookieYes Ultimate ($39+/mo)</div><p style="font-size:11px;color:var(--text2)">CookieYes Ultimate doesn't give you ownership of your consent data, doesn't have a real pre-consent pixel scanner, and doesn't have healthcare-adjacent mode. Noticeify Business at $49/month includes all of this — and your consent records live in your own database.</p></div>
   </div>
@@ -664,7 +663,7 @@ hr{border:none;border-top:.5px solid var(--b)}
 </div>
 
 <footer style="padding:16px 24px;border-top:.5px solid var(--b);background:var(--bg);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text3);flex-wrap:wrap;gap:8px">
-  <div class="logo" style="font-size:13px"><div class="logo-mark" style="width:20px;height:20px;border-radius:6px"><svg viewBox="0 0 14 14" fill="none" style="width:10px;height:10px"><path d="M7 1.5L11.5 4v6L7 12.5 2.5 10V4L7 1.5z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/></svg></div>Noticeify</div>
+  <div class="logo" style="font-size:13px"><img src="/noticeify-logo.png" style="height:24px;width:auto;display:block" alt="Noticeify"/></div>
   <div style="display:flex;gap:14px"><a href="#" onclick="show('features');return false">Features</a><a href="#" onclick="show('pricing');return false">Pricing</a><a href="#" onclick="show('docs');return false">Docs</a><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
   <span>Designed to support privacy compliance. Not legal advice.</span>
 </footer>
