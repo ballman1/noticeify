@@ -7,6 +7,14 @@ const VALID_SOURCES = new Set([
   'withdrawal',
   'gpc',
 ]);
+const ALLOWED_CATEGORIES = new Set([
+  'functional',
+  'analytics',
+  'marketing',
+  'personalization',
+  'support',
+  'media',
+]);
 
 const GEO_LOOKUP_TIMEOUT_MS = parseInt(
   process.env.GEO_LOOKUP_TIMEOUT_MS || '1200',
@@ -52,6 +60,16 @@ function validatePayload(body) {
   if (body.source !== 'withdrawal' && body.categories) {
     if (typeof body.categories !== 'object') {
       errors.push('categories: must be an object');
+    } else {
+      for (const [key, value] of Object.entries(body.categories)) {
+        if (!ALLOWED_CATEGORIES.has(key)) {
+          errors.push(`categories.${key}: unknown category`);
+          continue;
+        }
+        if (typeof value !== 'boolean') {
+          errors.push(`categories.${key}: must be a boolean`);
+        }
+      }
     }
   }
 

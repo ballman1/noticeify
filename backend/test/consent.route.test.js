@@ -1,7 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { hashIp, geoLookup } from '../services/consent-utils.js';
+import { hashIp, geoLookup, validatePayload } from '../services/consent-utils.js';
+
+test('validatePayload rejects unknown category keys', () => {
+  const payload = {
+    consentId: 'abc123',
+    clientId: 'client_1',
+    timestamp: new Date().toISOString(),
+    source: 'banner',
+    categories: { analytics: true, unknown_category: true },
+  };
+
+  const result = validatePayload(payload);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => e.includes('unknown category')));
+});
+
+test('validatePayload rejects non-boolean category values', () => {
+  const payload = {
+    consentId: 'abc123',
+    clientId: 'client_1',
+    timestamp: new Date().toISOString(),
+    source: 'banner',
+    categories: { analytics: 'yes' },
+  };
+
+  const result = validatePayload(payload);
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((e) => e.includes('must be a boolean')));
+});
 
 test('hashIp throws when IP_HASH_SALT is missing', () => {
   const prev = process.env.IP_HASH_SALT;
