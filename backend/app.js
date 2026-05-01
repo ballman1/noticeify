@@ -20,6 +20,7 @@ import helmet        from 'helmet';
 import cors          from 'cors';
 import rateLimit     from 'express-rate-limit';
 import { healthCheck } from './db/pool.js';
+import { getGeoMetrics } from './services/consent-utils.js';
 import consentRoutes   from './routes/consent.js';
 import scannerRoutes   from './routes/scanner.js';
 import {
@@ -142,6 +143,7 @@ app.get('/health', async (req, res) => {
       status: 'ok',
       db: { now: db.now },
       scannerWorker: getScannerWorkerMetrics(),
+      geo: getGeoMetrics(),
     });
   } catch (err) {
     res.status(503).json({ status: 'degraded', error: err.message });

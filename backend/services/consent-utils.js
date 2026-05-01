@@ -34,6 +34,14 @@ const GEO_LOOKUP_COOLDOWN_MS = parseInt(
 let geoFailureCount = 0;
 let geoDisabledUntilMs = 0;
 
+// Observability counters — reset on process restart, readable via getGeoMetrics()
+const geoMetrics = {
+  lookupAttempts:  0,
+  lookupSuccesses: 0,
+  lookupFailures:  0,
+  circuitOpenCount: 0,
+};
+
 /**
  * Validate consent payload shape and normalize selected fields.
  *
@@ -147,6 +155,8 @@ function hashIp(ip) {
 }
 
 async function geoLookup(ip) {
+  geoMetrics.lookupAttempts++;
+
   if (!GEO_LOOKUP_ENABLED) {
     return { countryCode: null, regionCode: null };
   }
@@ -173,6 +183,7 @@ async function geoLookup(ip) {
     const data = await res.json();
     geoFailureCount = 0;
     geoDisabledUntilMs = 0;
+    geoMetrics.lookupSuccesses++;
 
     return {
       countryCode:
@@ -186,8 +197,11 @@ async function geoLookup(ip) {
     };
   } catch {
     geoFailureCount += 1;
+    geoMetrics.lookupFailures++;
     if (geoFailureCount >= GEO_LOOKUP_FAILURE_THRESHOLD) {
       geoDisabledUntilMs = Date.now() + GEO_LOOKUP_COOLDOWN_MS;
+      geoMetrics.circuitOpenCount++;
+      console.warn('[Noticeify] Geo lookup circuit opened after repeated failures.');
     }
     return { countryCode: null, regionCode: null };
   } finally {
@@ -195,4 +209,22 @@ async function geoLookup(ip) {
   }
 }
 
-export { validatePayload, hashIp, geoLookup };
+/** Reset circuit breaker state — only for use in tests. */
+function resetGeoCircuit() {
+  geoFailureCount = 0;
+  geoDisabledUntilMs = 0;
+  geoMetrics.lookupAttempts  = 0;
+  geoMetrics.lookupSuccesses = 0;
+  geoMetrics.lookupFailures  = 0;
+  geoMetrics.circuitOpenCount = 0;
+}
+
+function getGeoMetrics() {
+  return {
+    ...geoMetrics,
+    circuitCurrentlyOpen: Date.now() < geoDisabledUntilMs,
+    failureCount: geoFailureCount,
+  };
+}
+
+export { validatePayload, hashIp, geoLookup, getGeoMetrics, resetGeoCircuit };

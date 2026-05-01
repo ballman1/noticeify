@@ -224,3 +224,125 @@ test('GET /runs/:scanRunId hides results unless status is completed', async () =
   assert.equal(body.status, 'running');
   assert.equal(body.results, null);
 });
+
+test('GET /runs/:scanRunId returns 403 when client does not own the run', async () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/v1/scanner', createScannerRouter({
+    queryFn: async (sql) => {
+      if (sql.includes('FROM scanner_runs')) {
+        // Run belongs to client_1 but requester is other_client
+        return { rows: [{ client_id: 'client_1' }] };
+      }
+      return { rows: [] };
+    },
+    requireAuthFn: denyOtherClientAuth,
+    kickScannerWorkerFn: async () => {},
+  }));
+
+  const server = app.listen(0);
+  const { port } = server.address();
+  const res = await fetch(`http://127.0.0.1:${port}/api/v1/scanner/runs/run_1`);
+  const body = await res.json();
+  server.close();
+
+  assert.equal(res.status, 403);
+  assert.equal(body.error, 'forbidden');
+});
+
+test('PATCH /runs/:scanRunId returns 403 when client does not own the run', async () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/v1/scanner', createScannerRouter({
+    queryFn: async (sql) => {
+      if (sql.startsWith('SELECT client_id FROM scanner_runs')) {
+        return { rows: [{ client_id: 'client_1' }] };
+      }
+      return { rows: [] };
+    },
+    requireAuthFn: denyOtherClientAuth,
+    kickScannerWorkerFn: async () => {},
+  }));
+
+  const server = app.listen(0);
+  const { port } = server.address();
+  const res = await fetch(`http://127.0.0.1:${port}/api/v1/scanner/runs/run_1`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'completed' }),
+  });
+  const body = await res.json();
+  server.close();
+
+  assert.equal(res.status, 403);
+  assert.equal(body.error, 'forbidden');
+});
+
+test('GET /latest/:clientId returns 404 when no completed scans exist', async () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/v1/scanner', createScannerRouter({
+    queryFn: async () => ({ rows: [] }),
+    requireAuthFn: allowAuth,
+    kickScannerWorkerFn: async () => {},
+  }));
+
+  const server = app.listen(0);
+  const { port } = server.address();
+  const res = await fetch(`http://127.0.0.1:${port}/api/v1/scanner/latest/client_1`);
+  const body = await res.json();
+  server.close();
+
+  assert.equal(res.status, 404);
+  assert.equal(body.error, 'no_scan_found');
+});
+
+test('GET /history/:clientId returns 403 for client mismatch', async () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/v1/scanner', createScannerRouter({
+    queryFn: async () => ({ rows: [] }),
+    requireAuthFn: denyOtherClientAuth,
+    kickScannerWorkerFn: async () => {},
+  }));
+
+  const server = app.listen(0);
+  const { port } = server.address();
+  const res = await fetch(`http://127.0.0.1:${port}/api/v1/scanner/history/client_1`);
+  const body = await res.json();
+  server.close();
+
+  assert.equal(res.status, 403);
+  assert.equal(body.error, 'forbidden');
+});
+
+test('GET /history/:clientId caps limit at 100', async () => {
+  const app = express();
+  app.use(express.json());
+  const capturedQueries = [];
+  app.use('/api/v1/scanner', createScannerRouter({
+    queryFn: async (sql, params) => {
+      capturedQueries.push({ sql, params });
+      return { rows: [] };
+    },
+    requireAuthFn: allowAuth,
+    kickScannerWorkerFn: async () => {},
+  }));
+
+  const server = app.listen(0);
+  const { port } = server.address();
+  // Request limit=999 — should be capped to 100
+  const res = await fetch(
+    `http://127.0.0.1:${port}/api/v1/scanner/history/client_1?limit=999`
+  );
+  server.close();
+
+  assert.equal(res.status, 200);
+  // The capped limit (100) should appear in the query params
+  const historyQuery = capturedQueries.find((q) => q.sql.includes('scanner_runs'));
+  assert.ok(historyQuery, 'expected a scanner_runs query');
+  assert.ok(
+    historyQuery.params.includes(100),
+    `expected limit capped to 100, got params: ${JSON.stringify(historyQuery.params)}`
+  );
+});

@@ -5,17 +5,20 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start":     "node app.js",
-    "dev":       "node --watch app.js",
-    "migrate":   "node scripts/migrate.js",
-    "test":      "node --test"
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "migrate": "node scripts/migrate.js",
+    "test": "node --test test/consent.route.test.js test/scanner.route.test.js test/scanner.worker.test.js",
+    "test:unit": "node --test test/consent.route.test.js test/scanner.route.test.js test/scanner.worker.test.js",
+    "test:integration": "node --test test/scanner.worker.db.test.js",
+    "test:all": "node --test"
   },
   "dependencies": {
-    "cors":                "^2.8.5",
-    "express":             "^4.19.2",
-    "express-rate-limit":  "^7.3.1",
-    "helmet":              "^7.1.0",
-    "pg":                  "^8.12.0"
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "helmet": "^7.1.0",
+    "pg": "^8.12.0"
   },
   "devDependencies": {
     "@types/pg": "^8.11.6"

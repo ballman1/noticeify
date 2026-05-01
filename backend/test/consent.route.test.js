@@ -112,3 +112,44 @@ test('geoLookup opens temporary circuit after repeated failures', async () => {
     global.fetch = oldFetch;
   }
 });
+
+// ---------------------------------------------------------------------------
+// getGeoMetrics observability
+// ---------------------------------------------------------------------------
+
+test('getGeoMetrics reflects successful lookups', async () => {
+  const { geoLookup, getGeoMetrics, resetGeoCircuit } = await import('../services/consent-utils.js');
+  resetGeoCircuit(); // reset module-level state for test isolation
+
+  const savedFetch = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({ country_code: 'US', region_code: 'CA' }),
+  });
+  try {
+    await geoLookup('1.2.3.4');
+    const after = getGeoMetrics();
+    assert.equal(after.lookupAttempts, 1);
+    assert.equal(after.lookupSuccesses, 1);
+    assert.equal(after.lookupFailures, 0);
+  } finally {
+    global.fetch = savedFetch;
+  }
+});
+
+test('getGeoMetrics reflects failed lookups', async () => {
+  const { geoLookup, getGeoMetrics, resetGeoCircuit } = await import('../services/consent-utils.js');
+  resetGeoCircuit();
+
+  const savedFetch = global.fetch;
+  global.fetch = async () => { throw new Error('network error'); };
+  try {
+    await geoLookup('1.2.3.5');
+    const after = getGeoMetrics();
+    assert.equal(after.lookupAttempts, 1);
+    assert.equal(after.lookupFailures, 1);
+    assert.equal(after.lookupSuccesses, 0);
+  } finally {
+    global.fetch = savedFetch;
+  }
+});
