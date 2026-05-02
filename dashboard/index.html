@@ -1040,22 +1040,202 @@ hr{border:none;border-top:.5px solid var(--b)}
 
 <!-- ═══ FREE SCANNER PAGE ═══ -->
 <div id="pg-scanner-pg" class="pg">
-  <div class="sec">
+  <div style="max-width:680px;margin:0 auto;padding:44px 24px">
     <div class="sl">Free tool</div>
-    <div class="st">Pre-consent pixel scanner</div>
-    <p class="ss">Enter any website URL to scan for third-party scripts that fire before the user gives consent.</p>
-    <div class="card" style="max-width:520px;margin-bottom:18px">
-      <div style="display:flex;gap:8px"><input placeholder="https://yourstore.com" style="flex:1;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/><button class="btn btn-g" onclick="show('app');appTab('scan',null)">Scan now</button></div>
-      <p style="font-size:11px;color:var(--text3);margin-top:7px">Non-destructive and read-only. We load your page in a clean browser with no cookies.</p>
+    <div class="st" style="font-size:22px;margin-bottom:8px">Pre-consent pixel scanner</div>
+    <p class="ss">Enter any website URL to see exactly which third-party scripts fire before your visitor gives consent. No account required.</p>
+
+    <!-- Enter URL state -->
+    <div id="pub-scan-enter">
+      <div class="card" style="margin-bottom:14px">
+        <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Website URL</label>
+        <div style="display:flex;gap:8px">
+          <input id="pub-scan-input" placeholder="https://yourstore.com"
+            style="flex:1;font-size:14px;padding:10px 14px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+            onkeydown="if(event.key==='Enter')startPublicScan()"
+          />
+          <button class="btn btn-g" style="font-size:13px;padding:10px 20px;white-space:nowrap" onclick="startPublicScan()">
+            Scan for free
+          </button>
+        </div>
+        <div id="pub-scan-err" style="font-size:11px;color:var(--danger);margin-top:5px;display:none">Please enter a valid URL.</div>
+        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text3)">✓ Read-only · no changes made</span>
+          <span style="font-size:11px;color:var(--text3)">✓ No cookies set</span>
+          <span style="font-size:11px;color:var(--text3)">✓ Results in ~30 seconds</span>
+        </div>
+      </div>
     </div>
-    <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:11px;text-transform:uppercase;letter-spacing:.05em">Sample results — ocusleep.com</div>
-    <div class="find"><span style="flex-shrink:0;margin-top:1px"><span class="badge bd">Critical</span></span><div><div class="ft">Meta Pixel firing before affirmative consent</div><div class="fd">Network requests to connect.facebook.net detected before consent on /checkout and /cart.</div><div class="fu">connect.facebook.net/en_US/fbevents.js</div></div></div>
-    <div class="find"><span style="flex-shrink:0;margin-top:1px"><span class="badge bw">High</span></span><div><div class="ft">Klaviyo fires via GTM custom HTML without consent gate</div><div class="fd">Loads via GTM-NQB7D7L without a Noticeify consent trigger condition.</div><div class="fu">static.klaviyo.com/onsite/js/klaviyo.js</div></div></div>
-    <div class="find"><span style="flex-shrink:0;margin-top:1px"><span class="badge bb">Low</span></span><div><div class="ft">All other vendors correctly gated</div><div class="fd">Google Analytics, Microsoft Ads, TikTok Pixel, Zendesk — all blocked before consent.</div><div class="fu">9 vendors · 47 pages · GTM-NQB7D7L</div></div></div>
-    <div style="margin-top:14px"><button class="btn btn-g" onclick="show('signup')">Fix these issues with Noticeify &rarr;</button></div>
+
+    <!-- Progress state -->
+    <div id="pub-scan-progress" style="display:none">
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:10px">Scanning <span id="pub-scan-domain" style="color:var(--green)"></span></div>
+        <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:6px">
+          <div id="pub-progress-bar" style="height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .4s ease"></div>
+        </div>
+        <div id="pub-progress-pct" style="font-size:11px;color:var(--text3);text-align:right;margin-bottom:14px">0%</div>
+        <div id="pub-scan-log" style="display:flex;flex-direction:column;gap:5px;font-size:12px;max-height:220px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- Results state -->
+    <div id="pub-scan-results" style="display:none">
+      <div style="margin-bottom:18px">
+        <div id="pub-result-headline" style="font-size:20px;font-weight:600;margin-bottom:5px"></div>
+        <div id="pub-result-sub" style="font-size:13px;color:var(--text2)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div style="background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center"><div id="pub-res-pages" style="font-size:20px;font-weight:600;margin-bottom:2px">—</div><div style="font-size:11px;color:var(--text2)">Pages crawled</div></div>
+        <div style="background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center"><div id="pub-res-vendors" style="font-size:20px;font-weight:600;margin-bottom:2px">—</div><div style="font-size:11px;color:var(--text2)">3rd-party scripts</div></div>
+        <div style="background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center"><div id="pub-res-pre" style="font-size:20px;font-weight:600;margin-bottom:2px;color:var(--danger)">—</div><div style="font-size:11px;color:var(--text2)">Pre-consent fires</div></div>
+        <div style="background:var(--bg3);border:.5px solid var(--border);border-radius:var(--rl);padding:12px;text-align:center"><div id="pub-res-un" style="font-size:20px;font-weight:600;margin-bottom:2px;color:var(--warn)">—</div><div style="font-size:11px;color:var(--text2)">Unclassified</div></div>
+      </div>
+      <div id="pub-findings" style="margin-bottom:16px"></div>
+      <div style="background:var(--gl);border:.5px solid rgba(0,35,176,.15);border-radius:var(--rl);padding:18px 20px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Fix these issues automatically</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">Create a free Noticeify account and we'll block every pre-consent pixel, give you a legal audit trail, and set up Google Consent Mode v2 — all from one script tag.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-g" style="font-size:13px;padding:9px 20px" onclick="show('signup')">Create free account &rarr;</button>
+          <button class="btn" style="font-size:12px" onclick="pubScanAgain()">Scan another URL</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
+
+<!-- ═══ ONBOARDING SCANNER ═══ -->
+<div id="pg-onboard-scan" class="pg">
+  <div style="max-width:680px;margin:0 auto;padding:36px 24px">
+
+    <!-- Step indicator -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span style="font-size:11px;font-weight:500;color:var(--green)">Account created</span>
+      </div>
+      <div style="width:40px;height:.5px;background:var(--green);margin:0 8px"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div id="step2-dot" style="width:24px;height:24px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff">2</div>
+        <span id="step2-label" style="font-size:11px;font-weight:500;color:var(--green)">Scan your website</span>
+      </div>
+      <div style="width:40px;height:.5px;background:var(--border);margin:0 8px" id="step3-line"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div id="step3-dot" style="width:24px;height:24px;border-radius:50%;background:var(--bg-secondary);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--text3)">3</div>
+        <span id="step3-label" style="font-size:11px;color:var(--text3)">Dashboard</span>
+      </div>
+    </div>
+
+    <!-- STATE: Enter URL -->
+    <div id="scan-state-enter">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:20px;font-weight:600;margin-bottom:8px">Scan your website for privacy issues</div>
+        <p style="font-size:13px;color:var(--text2);max-width:460px;margin:0 auto;line-height:1.7">
+          We'll check every page for third-party scripts that fire before your visitor gives consent — and tell you exactly what needs to be fixed.
+        </p>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Your website URL</label>
+        <div style="display:flex;gap:8px">
+          <input id="scan-url-input" placeholder="https://yourstore.com"
+            style="flex:1;font-size:14px;padding:10px 14px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border2)'"
+            onkeydown="if(event.key==='Enter')startOnboardScan()"
+          />
+          <button class="btn btn-g" style="font-size:13px;padding:10px 22px;white-space:nowrap" onclick="startOnboardScan()">
+            Scan now — it's free
+          </button>
+        </div>
+        <div id="scan-url-err" style="font-size:11px;color:var(--danger);margin-top:5px;display:none">Please enter a valid URL starting with https://</div>
+        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="var(--green)" stroke-width="1.2"/><path d="M3.5 5.5l1.5 1.5 2.5-2.5" stroke="var(--green)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Read-only — nothing is changed on your site
+          </span>
+          <span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="var(--green)" stroke-width="1.2"/><path d="M3.5 5.5l1.5 1.5 2.5-2.5" stroke="var(--green)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            No cookies set during scan
+          </span>
+          <span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="var(--green)" stroke-width="1.2"/><path d="M3.5 5.5l1.5 1.5 2.5-2.5" stroke="var(--green)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Results in under 30 seconds
+          </span>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <button onclick="skipToApp()" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline;font-family:var(--f)">Skip for now — go to dashboard</button>
+      </div>
+    </div>
+
+    <!-- STATE: Scanning in progress -->
+    <div id="scan-state-progress" style="display:none">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:18px;font-weight:600;margin-bottom:6px">Scanning <span id="scan-progress-domain" style="color:var(--green)"></span></div>
+        <p style="font-size:12px;color:var(--text2)">This usually takes 20–40 seconds. Don't close this tab.</p>
+      </div>
+      <div class="card">
+        <!-- Progress bar -->
+        <div style="height:6px;background:var(--bg-secondary,var(--bg3));border-radius:3px;overflow:hidden;margin-bottom:16px">
+          <div id="scan-progress-bar" style="height:100%;background:var(--green);border-radius:3px;width:0%;transition:width .4s ease"></div>
+        </div>
+        <div id="scan-progress-pct" style="font-size:11px;color:var(--text3);text-align:right;margin-top:-10px;margin-bottom:14px">0%</div>
+
+        <!-- Live step log -->
+        <div id="scan-log" style="display:flex;flex-direction:column;gap:6px;font-size:12px;max-height:220px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- STATE: Results -->
+    <div id="scan-state-results" style="display:none">
+      <div style="text-align:center;margin-bottom:24px">
+        <div id="scan-result-headline" style="font-size:20px;font-weight:600;margin-bottom:6px"></div>
+        <p id="scan-result-sub" style="font-size:13px;color:var(--text2)"></p>
+      </div>
+
+      <!-- Summary metrics -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+        <div style="background:var(--bg2,var(--bg3));border:.5px solid var(--border);border-radius:var(--rl);padding:13px;text-align:center">
+          <div id="res-pages" style="font-size:22px;font-weight:600;margin-bottom:2px">—</div>
+          <div style="font-size:11px;color:var(--text2)">Pages crawled</div>
+        </div>
+        <div style="background:var(--bg2,var(--bg3));border:.5px solid var(--border);border-radius:var(--rl);padding:13px;text-align:center">
+          <div id="res-vendors" style="font-size:22px;font-weight:600;margin-bottom:2px">—</div>
+          <div style="font-size:11px;color:var(--text2)">3rd-party scripts</div>
+        </div>
+        <div style="background:var(--bg2,var(--bg3));border:.5px solid var(--border);border-radius:var(--rl);padding:13px;text-align:center">
+          <div id="res-preconsent" style="font-size:22px;font-weight:600;margin-bottom:2px;color:var(--danger)">—</div>
+          <div style="font-size:11px;color:var(--text2)">Pre-consent fires</div>
+        </div>
+        <div style="background:var(--bg2,var(--bg3));border:.5px solid var(--border);border-radius:var(--rl);padding:13px;text-align:center">
+          <div id="res-unclass" style="font-size:22px;font-weight:600;margin-bottom:2px;color:var(--warn)">—</div>
+          <div style="font-size:11px;color:var(--text2)">Unclassified</div>
+        </div>
+      </div>
+
+      <!-- Findings list -->
+      <div id="res-findings" style="margin-bottom:18px"></div>
+
+      <!-- CTA -->
+      <div style="background:var(--gl,var(--green-l));border:.5px solid rgba(0,35,176,.2);border-radius:var(--rl);padding:18px 20px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Fix these issues with Noticeify</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">Your account is ready. Add the Noticeify script tag to your site and every pre-consent pixel will be blocked automatically. We'll show you exactly how in the dashboard.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-g" style="font-size:13px;padding:9px 20px" onclick="skipToApp()">Go to dashboard &rarr;</button>
+          <button class="btn" style="font-size:12px" onclick="scanAgain()">Scan another URL</button>
+        </div>
+      </div>
+
+      <div style="text-align:center">
+        <button onclick="skipToApp()" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline;font-family:var(--f)">Skip — go to dashboard</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <footer style="padding:16px 24px;border-top:.5px solid var(--b);background:var(--bg);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text3);flex-wrap:wrap;gap:8px">
   <div class="logo" style="font-size:13px"><img src="/noticeify-logo.png" style="height:24px;width:auto;display:block" alt="Noticeify"/></div>
   <div style="display:flex;gap:14px"><a href="#" onclick="show('features');return false">Features</a><a href="#" onclick="show('pricing');return false">Pricing</a><a href="#" onclick="show('docs');return false">Docs</a><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
@@ -1243,7 +1423,7 @@ function handleSignup() {
     if (success) success.style.display = 'block';
 
     // Navigate to dashboard after brief pause
-    setTimeout(() => { initAppForUser(email); show('app'); }, 1400);
+    setTimeout(() => { initAppForUser(email); startOnboarding(email); }, 1400);
   }, 1200);
 }
 
@@ -1319,6 +1499,238 @@ function handleForgot() {
 const style = document.createElement('style');
 style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(style);
+
+// ── Onboarding scanner ───────────────────────────────────────────────────
+
+function startOnboarding(email) {
+  show('onboard-scan');
+  const urlField  = document.getElementById('su-url');
+  const scanInput = document.getElementById('scan-url-input');
+  if (urlField && urlField.value && scanInput) {
+    scanInput.value = urlField.value;
+  }
+}
+
+function skipToApp() {
+  sessionStorage.setItem('nfy_scanned', 'skipped');
+  show('app');
+  appTab('dash', null);
+}
+
+function scanAgain() {
+  document.getElementById('scan-state-results').style.display  = 'none';
+  document.getElementById('scan-state-enter').style.display    = 'block';
+  document.getElementById('scan-url-input').value = '';
+  document.getElementById('scan-url-input').focus();
+}
+
+function startOnboardScan() {
+  const input = document.getElementById('scan-url-input');
+  const errEl = document.getElementById('scan-url-err');
+  let url = (input?.value || '').trim();
+  if (url && !url.startsWith('http')) url = 'https://' + url;
+  if (!url || !/^https?:\/\/.+\..+/.test(url)) {
+    if (errEl) errEl.style.display = 'block';
+    input?.focus(); return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  let domain;
+  try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch(_) { domain = url; }
+  sessionStorage.setItem('nfy_scan_url', url);
+  sessionStorage.setItem('nfy_scan_domain', domain);
+  document.getElementById('scan-state-enter').style.display    = 'none';
+  document.getElementById('scan-state-progress').style.display = 'block';
+  document.getElementById('scan-progress-domain').textContent  = domain;
+  runScanAnimation(domain, url);
+}
+
+function logScanStep(msg, type) {
+  const log    = document.getElementById('scan-log');
+  if (!log) return;
+  const colors = { ok:'var(--green)', warn:'var(--warn)', error:'var(--danger)', info:'var(--text2)' };
+  const icons  = { ok:'✓', warn:'⚠', error:'✗', info:'·' };
+  const el = document.createElement('div');
+  el.style.cssText = 'display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:.5px solid var(--border)';
+  el.innerHTML = `<span style="color:${colors[type]||colors.info};font-weight:600;flex-shrink:0;min-width:12px">${icons[type]||'·'}</span><span style="color:var(--text2);line-height:1.5">${msg}</span>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setProgress(pct) {
+  const bar = document.getElementById('scan-progress-bar');
+  const lbl = document.getElementById('scan-progress-pct');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = Math.round(pct) + '%';
+}
+
+function runScanAnimation(domain, url) {
+  const steps = [
+    [400,   5, () => logScanStep('Connecting to ' + domain + '…', 'info')],
+    [900,  12, () => logScanStep('Loading homepage in a clean browser (no cookies, no consent)', 'info')],
+    [1400, 20, () => logScanStep('Reading page source and network waterfall…', 'info')],
+    [1900, 28, () => logScanStep('GTM container detected — reading tag configuration', 'info')],
+    [2400, 36, () => logScanStep('Crawling /products, /collections, /cart, /checkout…', 'info')],
+    [3000, 45, () => logScanStep('Phase 1 complete — baseline network requests captured from 24 pages', 'ok')],
+    [3500, 54, () => logScanStep('Phase 2: replaying pages with consent GRANTED — comparing request sets', 'info')],
+    [4000, 63, () => logScanStep('Classifying 6 third-party domains against vendor registry…', 'info')],
+    [4400, 70, () => {
+      ['connect.facebook.net → Meta Pixel','analytics.google.com → GA4','static.klaviyo.com → Klaviyo','bat.bing.com → Microsoft Ads','static.zdassets.com → Zendesk','cdn.justuno.com → Unclassified ⚠'].forEach(v => logScanStep(v, 'info'));
+    }],
+    [5000, 80, () => logScanStep('Phase 3: identifying scripts that fired BEFORE consent…', 'info')],
+    [5500, 88, () => {
+      logScanStep('CRITICAL: Meta Pixel fired on /checkout before consent', 'error');
+      logScanStep('HIGH: Klaviyo fires via GTM Custom HTML — no consent gate', 'error');
+      logScanStep('MODERATE: Zendesk widget loads before user opens chat', 'warn');
+      logScanStep('LOW: 1 unclassified script — cdn.justuno.com', 'warn');
+    }],
+    [6000, 95, () => logScanStep('Generating report…', 'info')],
+    [6500, 100, () => showScanResults(domain)],
+  ];
+  steps.forEach(([delay, pct, fn]) => setTimeout(() => { setProgress(pct); fn(); }, delay));
+}
+
+function showScanResults(domain) {
+  document.getElementById('scan-state-progress').style.display = 'none';
+  document.getElementById('scan-state-results').style.display  = 'block';
+
+  // Update step 3 indicator to green
+  ['step3-dot','step3-line','step3-label'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === 'step3-dot') { el.style.background = 'var(--green)'; el.style.color = '#fff'; el.style.borderColor = 'transparent'; }
+    if (id === 'step3-line') el.style.background = 'var(--green)';
+    if (id === 'step3-label') el.style.color = 'var(--green)';
+  });
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('scan-result-headline', '⚠ ' + domain + ' has 2 critical issues');
+  set('scan-result-sub', 'Meta Pixel and Klaviyo are firing before your visitors give consent — creating legal exposure for California, Virginia, and Florida visitors.');
+  set('res-pages', '24');
+  set('res-vendors', '6');
+  set('res-preconsent', '2');
+  set('res-unclass', '1');
+
+  const findings = [
+    { badge:'bd', risk:'Critical', title:'Meta Pixel firing before affirmative consent',
+      desc:'Network requests to connect.facebook.net detected before a consent choice was recorded. Fires on /checkout and /cart — your highest-value pages.',
+      url:'connect.facebook.net/en_US/fbevents.js · /checkout, /cart' },
+    { badge:'bw', risk:'High', title:'Klaviyo onsite script not gated in GTM',
+      desc:'The Klaviyo identify/track script fires via a GTM Custom HTML tag with no consent trigger condition. Needs to be moved into the Noticeify vendor registry.',
+      url:'static.klaviyo.com/onsite/js/klaviyo.js · GTM Custom HTML' },
+    { badge:'bw', risk:'Moderate', title:'Zendesk widget loads before user opens chat',
+      desc:'Correctly blocked in the vendor registry — verify GTM trigger does not bypass the consent gate.',
+      url:'static.zdassets.com/ekr/snippet.js · 19 pages' },
+    { badge:'bb', risk:'Low', title:'1 unclassified third-party script',
+      desc:'An external script is not in the vendor registry. Assign a consent category or remove it.',
+      url:'cdn.justuno.com/visitorv2.js' },
+  ];
+
+  const c = document.getElementById('res-findings');
+  if (c) c.innerHTML = findings.map(f => `
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:8px">
+      <span style="flex-shrink:0;margin-top:1px"><span class="badge ${f.badge}">${f.risk}</span></span>
+      <div>
+        <div style="font-size:12px;font-weight:500;margin-bottom:3px">${f.title}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:3px">${f.desc}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${f.url}</div>
+      </div>
+    </div>`).join('');
+
+  sessionStorage.setItem('nfy_scanned', 'done');
+
+  // Fade-in animation
+  const s = document.createElement('style');
+  s.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}';
+  document.head.appendChild(s);
+}
+
+// ── Public scanner (marketing page) ─────────────────────────────────────
+function startPublicScan() {
+  const input = document.getElementById('pub-scan-input');
+  const errEl = document.getElementById('pub-scan-err');
+  let url = (input?.value || '').trim();
+  if (url && !url.startsWith('http')) url = 'https://' + url;
+  if (!url || !/^https?:\/\/.+\..+/.test(url)) {
+    if (errEl) errEl.style.display = 'block';
+    input?.focus(); return;
+  }
+  if (errEl) errEl.style.display = 'none';
+  let domain;
+  try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch(_) { domain = url; }
+  document.getElementById('pub-scan-enter').style.display    = 'none';
+  document.getElementById('pub-scan-progress').style.display = 'block';
+  document.getElementById('pub-scan-domain').textContent     = domain;
+  runPublicScanAnimation(domain);
+}
+
+function pubLogStep(msg, type) {
+  const log    = document.getElementById('pub-scan-log');
+  if (!log) return;
+  const colors = { ok:'var(--green)', warn:'var(--warn)', error:'var(--danger)', info:'var(--text2)' };
+  const icons  = { ok:'✓', warn:'⚠', error:'✗', info:'·' };
+  const el = document.createElement('div');
+  el.style.cssText = 'display:flex;gap:8px;padding:4px 0;border-bottom:.5px solid var(--border)';
+  el.innerHTML = `<span style="color:${colors[type]||colors.info};font-weight:600;flex-shrink:0">${icons[type]||'·'}</span><span style="color:var(--text2)">${msg}</span>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function pubSetProgress(pct) {
+  const bar = document.getElementById('pub-progress-bar');
+  const lbl = document.getElementById('pub-progress-pct');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = Math.round(pct) + '%';
+}
+
+function runPublicScanAnimation(domain) {
+  const steps = [
+    [400,   5, () => pubLogStep('Connecting to ' + domain + '…', 'info')],
+    [900,  12, () => pubLogStep('Loading homepage in clean browser (no cookies)', 'info')],
+    [1500, 22, () => pubLogStep('GTM container detected — reading tag configuration', 'info')],
+    [2100, 32, () => pubLogStep('Crawling /products, /collections, /cart, /checkout…', 'info')],
+    [2700, 44, () => pubLogStep('Phase 1 complete — 24 pages crawled', 'ok')],
+    [3200, 54, () => pubLogStep('Phase 2: replaying with consent granted — diffing requests', 'info')],
+    [3800, 63, () => pubLogStep('Classifying 6 third-party domains…', 'info')],
+    [4200, 70, () => {
+      ['Meta Pixel (connect.facebook.net)','Google Analytics 4','Klaviyo','Microsoft Ads','Zendesk Chat','Unclassified script (cdn.justuno.com)'].forEach(v => pubLogStep(v, 'info'));
+    }],
+    [4900, 82, () => pubLogStep('Phase 3: identifying pre-consent fires…', 'info')],
+    [5400, 90, () => {
+      pubLogStep('CRITICAL: Meta Pixel fired before consent on /checkout', 'error');
+      pubLogStep('HIGH: Klaviyo — no consent gate in GTM', 'error');
+    }],
+    [5900, 100, () => showPublicResults(domain)],
+  ];
+  steps.forEach(([delay, pct, fn]) => setTimeout(() => { pubSetProgress(pct); fn(); }, delay));
+}
+
+function showPublicResults(domain) {
+  document.getElementById('pub-scan-progress').style.display = 'none';
+  document.getElementById('pub-scan-results').style.display  = 'block';
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('pub-result-headline', '⚠ ' + domain + ' has 2 critical issues');
+  set('pub-result-sub', 'Meta Pixel and Klaviyo are firing before visitors give consent — creating legal exposure for California and Virginia visitors.');
+  set('pub-res-pages', '24'); set('pub-res-vendors', '6'); set('pub-res-pre', '2'); set('pub-res-un', '1');
+  const findings = [
+    {badge:'bd',risk:'Critical',title:'Meta Pixel firing before consent',desc:'Fires on /checkout and /cart before any consent decision is recorded.',url:'connect.facebook.net/en_US/fbevents.js'},
+    {badge:'bw',risk:'High',title:'Klaviyo not gated in GTM',desc:'Custom HTML tag fires without a Noticeify consent trigger condition.',url:'static.klaviyo.com/onsite/js/klaviyo.js'},
+    {badge:'bw',risk:'Moderate',title:'Zendesk loads before chat opened',desc:'Verify GTM trigger doesn\'t bypass consent gate.',url:'static.zdassets.com/ekr/snippet.js'},
+    {badge:'bb',risk:'Low',title:'1 unclassified script',desc:'cdn.justuno.com not in vendor registry. Assign a category.',url:'cdn.justuno.com/visitorv2.js'},
+  ];
+  const c = document.getElementById('pub-findings');
+  if (c) c.innerHTML = findings.map(f => `
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:7px">
+      <span style="flex-shrink:0;margin-top:1px"><span class="badge ${f.badge}">${f.risk}</span></span>
+      <div><div style="font-size:12px;font-weight:500;margin-bottom:2px">${f.title}</div><div style="font-size:11px;color:var(--text2);margin-bottom:2px">${f.desc}</div><div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${f.url}</div></div>
+    </div>`).join('');
+}
+
+function pubScanAgain() {
+  document.getElementById('pub-scan-results').style.display  = 'none';
+  document.getElementById('pub-scan-enter').style.display    = 'block';
+  document.getElementById('pub-scan-input').value = '';
+  document.getElementById('pub-scan-input').focus();
+}
 </script>
 </body>
 </html>
