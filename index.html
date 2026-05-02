@@ -244,7 +244,7 @@ hr{border:none;border-top:.5px solid var(--b)}
     <button class="nl" onclick="show('scanner-pg')">Free scanner</button>
   </div>
   <div class="nav-r">
-    <button class="btn" onclick="show('app')">Sign in</button>
+    <button class="btn" onclick="show('signin')">Sign in</button>
     <button class="btn btn-g" onclick="show('signup')">Get started free</button>
   </div>
 </nav>
@@ -573,18 +573,174 @@ hr{border:none;border-top:.5px solid var(--b)}
 </div>
 
 <!-- ═══ SIGN UP ═══ -->
+<!-- ═══ SIGN UP ═══ -->
 <div id="pg-signup" class="pg">
-  <div style="max-width:480px;margin:0 auto;padding:36px 22px">
-    <div style="text-align:center;margin-bottom:26px"><div class="logo" style="justify-content:center;margin-bottom:10px"><img src="/noticeify-logo.png" style="height:28px;width:auto;display:block" alt="Noticeify"/></div><h2 style="font-size:17px;font-weight:600;margin-bottom:5px">Get started in 2 minutes</h2><p style="font-size:13px;color:var(--text2)">Free plan — no credit card required.</p></div>
-    <div class="card"><div style="display:flex;flex-direction:column;gap:13px">
-      <div><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Your website URL</label><input placeholder="https://yourstore.myshopify.com" style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/></div>
-      <div><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Platform</label><select style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"><option>Shopify</option><option>WordPress</option><option>Custom HTML</option><option>Other</option></select></div>
-      <div><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Jurisdiction</label><select style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"><option>GDPR &amp; US State Laws (recommended)</option><option>US State Laws only (CCPA)</option><option>GDPR only</option></select></div>
-      <div><label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Work email</label><input placeholder="you@company.com" type="email" style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/></div>
-      <button class="btn btn-g" style="width:100%;font-size:13px;padding:8px" onclick="show('app')">Create free account &rarr;</button>
-      <p style="font-size:11px;color:var(--text3);text-align:center">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
-    </div></div>
-    <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:12px">Already have an account? <a href="#" onclick="show('app');return false">Sign in</a></p>
+  <div style="max-width:460px;margin:0 auto;padding:36px 22px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="logo" style="justify-content:center;margin-bottom:10px">
+        <img src="/noticeify-logo.png" style="height:28px;width:auto;display:block" alt="Noticeify"/>
+      </div>
+      <h2 style="font-size:17px;font-weight:600;margin-bottom:5px">Get started in 2 minutes</h2>
+      <p style="font-size:13px;color:var(--text2)">Free plan — no credit card required.</p>
+    </div>
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:12px" id="signup-form">
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Work email</label>
+          <input id="su-email" type="email" placeholder="you@company.com"
+            style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+          />
+          <div id="su-email-err" style="font-size:11px;color:var(--danger);margin-top:3px;display:none">Please enter a valid email address.</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Password</label>
+          <div style="position:relative">
+            <input id="su-password" type="password" placeholder="At least 8 characters"
+              style="width:100%;font-size:13px;padding:7px 36px 7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+              onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+            />
+            <button onclick="togglePw('su-password',this)" type="button"
+              style="position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:2px">Show</button>
+          </div>
+          <div id="su-pw-err" style="font-size:11px;color:var(--danger);margin-top:3px;display:none">Password must be at least 8 characters.</div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Your website URL</label>
+          <input id="su-url" placeholder="https://yourstore.myshopify.com"
+            style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+          />
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Platform</label>
+          <select id="su-platform" style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)">
+            <option>Shopify</option><option>WordPress</option><option>Custom HTML</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Jurisdiction</label>
+          <select style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)">
+            <option>GDPR &amp; US State Laws (recommended)</option>
+            <option>US State Laws only (CCPA)</option>
+            <option>GDPR only</option>
+          </select>
+        </div>
+        <div id="su-general-err" style="display:none;padding:9px 12px;background:var(--dl);border-radius:var(--r);font-size:12px;color:var(--danger)"></div>
+        <button id="su-btn" onclick="handleSignup()" class="btn btn-g" style="width:100%;font-size:13px;padding:9px;position:relative">
+          Create free account &rarr;
+        </button>
+        <p style="font-size:11px;color:var(--text3);text-align:center">
+          By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+        </p>
+      </div>
+      <!-- Success state (hidden initially) -->
+      <div id="signup-success" style="display:none;text-align:center;padding:12px 0">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">Account created!</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Taking you to your dashboard...</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:12px">
+      Already have an account? <a href="#" onclick="show('signin');return false">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<!-- ═══ SIGN IN ═══ -->
+<div id="pg-signin" class="pg">
+  <div style="max-width:400px;margin:0 auto;padding:36px 22px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="logo" style="justify-content:center;margin-bottom:10px">
+        <img src="/noticeify-logo.png" style="height:28px;width:auto;display:block" alt="Noticeify"/>
+      </div>
+      <h2 style="font-size:17px;font-weight:600;margin-bottom:5px">Welcome back</h2>
+      <p style="font-size:13px;color:var(--text2)">Sign in to your Noticeify account.</p>
+    </div>
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:12px" id="signin-form">
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Email</label>
+          <input id="si-email" type="email" placeholder="you@company.com"
+            style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+            onkeydown="if(event.key==='Enter')document.getElementById('si-password').focus()"
+          />
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <label style="font-size:12px;font-weight:500">Password</label>
+            <a href="#" onclick="show('forgot');return false" style="font-size:11px">Forgot password?</a>
+          </div>
+          <div style="position:relative">
+            <input id="si-password" type="password" placeholder="Your password"
+              style="width:100%;font-size:13px;padding:7px 36px 7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+              onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+              onkeydown="if(event.key==='Enter')handleSignin()"
+            />
+            <button onclick="togglePw('si-password',this)" type="button"
+              style="position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:2px">Show</button>
+          </div>
+        </div>
+        <div id="si-err" style="display:none;padding:9px 12px;background:var(--dl);border-radius:var(--r);font-size:12px;color:var(--danger)"></div>
+        <button id="si-btn" onclick="handleSignin()" class="btn btn-g" style="width:100%;font-size:13px;padding:9px">
+          Sign in
+        </button>
+      </div>
+      <!-- Success state -->
+      <div id="signin-success" style="display:none;text-align:center;padding:12px 0">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">Signed in!</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Loading your dashboard...</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:12px">
+      Don't have an account? <a href="#" onclick="show('signup');return false">Get started free</a>
+    </p>
+  </div>
+</div>
+
+<!-- ═══ FORGOT PASSWORD ═══ -->
+<div id="pg-forgot" class="pg">
+  <div style="max-width:400px;margin:0 auto;padding:36px 22px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="logo" style="justify-content:center;margin-bottom:10px">
+        <img src="/noticeify-logo.png" style="height:28px;width:auto;display:block" alt="Noticeify"/>
+      </div>
+      <h2 style="font-size:17px;font-weight:600;margin-bottom:5px">Reset your password</h2>
+      <p style="font-size:13px;color:var(--text2)">Enter your email and we'll send a reset link.</p>
+    </div>
+    <div class="card">
+      <div id="forgot-form" style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:12px;font-weight:500;display:block;margin-bottom:4px">Email</label>
+          <input id="fp-email" type="email" placeholder="you@company.com"
+            style="width:100%;font-size:13px;padding:7px 11px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f);outline:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--b2)'"
+            onkeydown="if(event.key==='Enter')handleForgot()"
+          />
+          <div id="fp-err" style="font-size:11px;color:var(--danger);margin-top:3px;display:none">Please enter a valid email address.</div>
+        </div>
+        <button id="fp-btn" onclick="handleForgot()" class="btn btn-g" style="width:100%;font-size:13px;padding:9px">
+          Send reset link
+        </button>
+      </div>
+      <div id="forgot-success" style="display:none;text-align:center;padding:8px 0">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 10h14M10 4l6 6-6 6" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px">Check your inbox</div>
+        <div id="fp-success-msg" style="font-size:12px;color:var(--text2);margin-bottom:14px"></div>
+        <a href="#" onclick="show('signin');return false" style="font-size:12px">Back to sign in</a>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:12px">
+      <a href="#" onclick="show('signin');return false">&larr; Back to sign in</a>
+    </p>
   </div>
 </div>
 
@@ -669,6 +825,7 @@ hr{border:none;border-top:.5px solid var(--b)}
 </footer>
 
 <script>
+// ── Navigation ──────────────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.nl').forEach(b => b.classList.remove('on'));
@@ -695,6 +852,164 @@ function docTab(id, btn) {
   if (panel) panel.classList.add('on');
   if (btn) btn.classList.add('on');
 }
+
+// ── Utilities ───────────────────────────────────────────────────────────────
+function isValidEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+
+function setLoading(btnId, loading, defaultLabel) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.style.opacity = loading ? '0.7' : '1';
+  btn.style.cursor  = loading ? 'not-allowed' : 'pointer';
+  btn.innerHTML     = loading
+    ? '<span style="display:inline-flex;align-items:center;gap:7px"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="animation:spin .7s linear infinite"><circle cx="7" cy="7" r="5" stroke="rgba(255,255,255,.3)" stroke-width="2"/><path d="M7 2a5 5 0 0 1 5 5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Loading...</span>'
+    : defaultLabel;
+}
+
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'Hide'; }
+  else                         { inp.type = 'password'; btn.textContent = 'Show'; }
+}
+
+// Persist session in sessionStorage so refreshing keeps you logged in
+function saveSession(email) {
+  try { sessionStorage.setItem('nfy_user', email); } catch(_) {}
+}
+
+function getSession() {
+  try { return sessionStorage.getItem('nfy_user'); } catch(_) { return null; }
+}
+
+// On load: if session exists, show app directly
+window.addEventListener('DOMContentLoaded', () => {
+  if (getSession()) show('app');
+});
+
+// ── Sign Up ──────────────────────────────────────────────────────────────────
+function handleSignup() {
+  // Clear previous errors
+  ['su-email-err','su-pw-err','su-general-err'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+
+  const email    = (document.getElementById('su-email')?.value    || '').trim();
+  const password = (document.getElementById('su-password')?.value || '').trim();
+  const url      = (document.getElementById('su-url')?.value      || '').trim();
+
+  let valid = true;
+
+  if (!isValidEmail(email)) {
+    const el = document.getElementById('su-email-err');
+    if (el) { el.style.display = 'block'; }
+    document.getElementById('su-email')?.focus();
+    valid = false;
+  }
+
+  if (password.length < 8) {
+    const el = document.getElementById('su-pw-err');
+    if (el) { el.style.display = 'block'; }
+    if (valid) document.getElementById('su-password')?.focus();
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  // Simulate account creation with loading state
+  setLoading('su-btn', true, 'Create free account &rarr;');
+
+  setTimeout(() => {
+    setLoading('su-btn', false, 'Create free account &rarr;');
+    saveSession(email);
+
+    // Show success state
+    const form = document.getElementById('signup-form');
+    const success = document.getElementById('signup-success');
+    if (form)    form.style.display    = 'none';
+    if (success) success.style.display = 'block';
+
+    // Navigate to dashboard after brief pause
+    setTimeout(() => show('app'), 1400);
+  }, 1200);
+}
+
+// ── Sign In ──────────────────────────────────────────────────────────────────
+function handleSignin() {
+  const errEl = document.getElementById('si-err');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  const email    = (document.getElementById('si-email')?.value    || '').trim();
+  const password = (document.getElementById('si-password')?.value || '').trim();
+
+  if (!isValidEmail(email) || password.length < 1) {
+    if (errEl) {
+      errEl.textContent  = 'Please enter your email and password.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  setLoading('si-btn', true, 'Sign in');
+
+  setTimeout(() => {
+    setLoading('si-btn', false, 'Sign in');
+
+    // Demo: accept any valid-looking credentials
+    if (password.length < 6) {
+      if (errEl) {
+        errEl.textContent  = 'Incorrect email or password. Please try again.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    saveSession(email);
+
+    // Show success state
+    const form    = document.getElementById('signin-form');
+    const success = document.getElementById('signin-success');
+    if (form)    form.style.display    = 'none';
+    if (success) success.style.display = 'block';
+
+    setTimeout(() => show('app'), 1200);
+  }, 900);
+}
+
+// ── Forgot Password ──────────────────────────────────────────────────────────
+function handleForgot() {
+  const errEl = document.getElementById('fp-err');
+  if (errEl) errEl.style.display = 'none';
+
+  const email = (document.getElementById('fp-email')?.value || '').trim();
+
+  if (!isValidEmail(email)) {
+    if (errEl) errEl.style.display = 'block';
+    return;
+  }
+
+  setLoading('fp-btn', true, 'Send reset link');
+
+  setTimeout(() => {
+    setLoading('fp-btn', false, 'Send reset link');
+
+    const form    = document.getElementById('forgot-form');
+    const success = document.getElementById('forgot-success');
+    const msg     = document.getElementById('fp-success-msg');
+    if (form)    form.style.display    = 'none';
+    if (success) success.style.display = 'block';
+    if (msg)     msg.textContent       = `A password reset link has been sent to ${email}.`;
+  }, 900);
+}
+
+// ── Spinner keyframe ─────────────────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
 </script>
 </body>
 </html>
