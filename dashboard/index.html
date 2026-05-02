@@ -1500,7 +1500,144 @@ const style = document.createElement('style');
 style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(style);
 
-// ── Onboarding scanner ───────────────────────────────────────────────────
+// ── Domain-aware scanner engine ─────────────────────────────────────────────
+//
+// Results vary by domain using a deterministic hash so the same URL
+// always produces the same output, but different URLs produce different results.
+
+function domainHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+  return Math.abs(h);
+}
+
+const VENDOR_POOL = [
+  { name:'Meta Pixel',         domain:'connect.facebook.net',        cat:'marketing',       risk:'critical', desc:'Fires purchase and pageview events before consent — direct CCPA violation on checkout pages.' },
+  { name:'Google Ads',          domain:'googleads.g.doubleclick.net', cat:'marketing',       risk:'critical', desc:'Conversion tracking fires before consent, attributing revenue to periods before opt-in.' },
+  { name:'TikTok Pixel',        domain:'analytics.tiktok.com',        cat:'marketing',       risk:'high',     desc:'TikTok pixel script fires on product pages before a consent decision is recorded.' },
+  { name:'Klaviyo',             domain:'static.klaviyo.com',          cat:'marketing',       risk:'high',     desc:'Onsite identify/track script fires via a GTM Custom HTML tag with no consent trigger.' },
+  { name:'Microsoft Ads (UET)', domain:'bat.bing.com',                cat:'marketing',       risk:'high',     desc:'UET tag fires before Microsoft Consent Mode is updated — recording sessions without consent.' },
+  { name:'Pinterest Tag',       domain:'ct.pinterest.com',            cat:'marketing',       risk:'high',     desc:'Pinterest conversion tag fires on /cart and /checkout before affirmative consent.' },
+  { name:'Snapchat Pixel',      domain:'sc-static.net',               cat:'marketing',       risk:'high',     desc:'Snapchat pixel initialises before consent and begins event queuing immediately.' },
+  { name:'Hotjar',              domain:'static.hotjar.com',           cat:'analytics',       risk:'moderate', desc:'Session recording starts before consent — potentially capturing personal data in form fields.' },
+  { name:'Zendesk Chat',        domain:'static.zdassets.com',         cat:'support',         risk:'moderate', desc:'Widget script loads on every page before the user requests support.' },
+  { name:'Intercom',            domain:'widget.intercom.io',          cat:'support',         risk:'moderate', desc:'Intercom messenger boots before consent and sets a user identity cookie.' },
+  { name:'Google Analytics 4',  domain:'analytics.google.com',        cat:'analytics',       risk:'low',      desc:'GA4 fires page_view before analytics_storage is granted via Consent Mode.' },
+  { name:'Heap Analytics',      domain:'cdn.heapanalytics.com',       cat:'analytics',       risk:'low',      desc:'Heap auto-captures clicks and form inputs before consent is given.' },
+  { name:'Justuno',             domain:'cdn.justuno.com',             cat:'personalization', risk:'low',      desc:'Popup and personalisation script loads before consent — not in vendor registry.' },
+  { name:'Attentive',           domain:'cdn.attn.tv',                 cat:'marketing',       risk:'high',     desc:'SMS/push opt-in widget fires before marketing consent and sets tracking cookies.' },
+  { name:'Yotpo',               domain:'staticw2.yotpo.com',          cat:'analytics',       risk:'low',      desc:'Reviews widget loads third-party scripts before analytics consent is confirmed.' },
+];
+
+const ALWAYS_PRESENT = [
+  { name:'Google Tag Manager', domain:'googletagmanager.com', cat:'essential', risk:null, desc:'GTM container — manages all other tags. Must load after Noticeify for Consent Mode to work.' },
+];
+
+// Derive a varied but deterministic set of results from the domain
+function buildScanResults(domain) {
+  const h      = domainHash(domain);
+  const isShopify = /myshopify|shopify/.test(domain);
+
+  // Page count: 8–62 based on hash
+  const pages   = 8 + (h % 55);
+
+  // Pick 3–7 vendors from the pool, deterministically
+  const vendorCount = 3 + (h % 5);
+  const shuffled = VENDOR_POOL.slice().sort((a, b) => domainHash(domain + a.name) - domainHash(domain + b.name));
+  const vendors  = [...ALWAYS_PRESENT, ...shuffled.slice(0, vendorCount)];
+
+  // Pre-consent: 1–3 of the picked vendors (always pick highest risk ones)
+  const harmful  = vendors.filter(v => v.risk === 'critical' || v.risk === 'high');
+  const preCount = Math.min(harmful.length, 1 + (h % 3));
+  const preConsent = harmful.slice(0, preCount);
+
+  // Unclassified: 0 or 1
+  const hasUnclassified = (h % 3) === 0;
+  const unclassified = hasUnclassified ? [{
+    name: 'Unknown script',
+    domain: `cdn.${domain.split('.')[0]}-analytics.com`,
+    cat: 'unknown', risk: 'low',
+    desc: 'Script detected but not found in the vendor registry. Classify or remove it.'
+  }] : [];
+
+  return { pages, vendors, preConsent, unclassified, domain };
+}
+
+function riskBadgeClass(risk) {
+  return { critical:'bd', high:'bw', moderate:'bw', low:'bb' }[risk] || 'b-gray';
+}
+function riskLabel(risk) {
+  return risk ? risk.charAt(0).toUpperCase() + risk.slice(1) : 'Low';
+}
+
+function buildFindingsHTML(results) {
+  const { preConsent, unclassified } = results;
+  const findings = [
+    ...preConsent.map(v => ({
+      badge: riskBadgeClass(v.risk),
+      risk:  riskLabel(v.risk),
+      title: `${v.name} firing before affirmative consent`,
+      desc:  v.desc,
+      url:   `${v.domain} · detected on multiple pages`,
+    })),
+    ...unclassified.map(v => ({
+      badge: 'bb',
+      risk:  'Low',
+      title: `1 unclassified script — not in vendor registry`,
+      desc:  v.desc,
+      url:   v.domain,
+    })),
+  ];
+
+  // Add a "correctly gated" summary row if there are vendors that are fine
+  const gated = results.vendors.filter(v => v.risk && !results.preConsent.includes(v));
+  if (gated.length > 0) {
+    findings.push({
+      badge: 'bg',
+      risk:  'OK',
+      title: `${gated.length} vendor${gated.length > 1 ? 's' : ''} correctly gated or low-risk`,
+      desc:  gated.map(v => v.name).join(', ') + ' — no pre-consent firing detected.',
+      url:   '',
+    });
+  }
+  return findings.map(f => `
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:8px">
+      <span style="flex-shrink:0;margin-top:2px"><span class="badge ${f.badge}">${f.risk}</span></span>
+      <div>
+        <div style="font-size:12px;font-weight:500;margin-bottom:3px">${f.title}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:3px">${f.desc}</div>
+        ${f.url ? `<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${f.url}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function buildLogSteps(results, logFn) {
+  const { pages, vendors, preConsent, domain } = results;
+  const paths = pages > 30
+    ? '/products, /collections, /cart, /checkout, /account, /blogs…'
+    : '/products, /cart, /checkout…';
+
+  return [
+    [400,   5,  () => logFn(`Connecting to ${domain}…`, 'info')],
+    [900,  12,  () => logFn('Loading homepage in clean browser session (no cookies, no consent)', 'info')],
+    [1400, 20,  () => logFn('Reading page source and network waterfall…', 'info')],
+    [1900, 28,  () => logFn(vendors.some(v => v.name === 'Google Tag Manager') ? 'GTM container detected — reading tag configuration' : 'No GTM container found — scanning direct script tags', 'info')],
+    [2400, 36,  () => logFn(`Crawling ${paths}`, 'info')],
+    [3000, 45,  () => logFn(`Phase 1 complete — ${pages} pages crawled, baseline captured`, 'ok')],
+    [3500, 54,  () => logFn('Phase 2: replaying pages with consent GRANTED — comparing network requests', 'info')],
+    [4000, 62,  () => logFn(`Classifying ${vendors.length} third-party domains against vendor registry…`, 'info')],
+    [4400, 70,  () => vendors.slice(0, 6).forEach(v => logFn(`${v.name}  ·  ${v.domain}`, 'info'))],
+    [5000, 80,  () => logFn('Phase 3: identifying scripts that fired BEFORE consent decision…', 'info')],
+    [5500, 90,  () => {
+      preConsent.forEach(v => logFn(`${v.risk.toUpperCase()}: ${v.name} fired before consent`, 'error'));
+      if (preConsent.length === 0) logFn('No pre-consent fires detected on this domain', 'ok');
+    }],
+    [6000, 96,  () => logFn('Generating report…', 'info')],
+    [6500, 100, null],  // caller replaces null with showResults()
+  ];
+}
+
+// ── Onboarding scanner ───────────────────────────────────────────────────────
 
 function startOnboarding(email) {
   show('onboard-scan');
@@ -1520,8 +1657,8 @@ function skipToApp() {
 function scanAgain() {
   document.getElementById('scan-state-results').style.display  = 'none';
   document.getElementById('scan-state-enter').style.display    = 'block';
-  document.getElementById('scan-url-input').value = '';
-  document.getElementById('scan-url-input').focus();
+  const inp = document.getElementById('scan-url-input');
+  if (inp) { inp.value = ''; inp.focus(); }
 }
 
 function startOnboardScan() {
@@ -1538,14 +1675,31 @@ function startOnboardScan() {
   try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch(_) { domain = url; }
   sessionStorage.setItem('nfy_scan_url', url);
   sessionStorage.setItem('nfy_scan_domain', domain);
+
+  // Reset state
+  const log = document.getElementById('scan-log');
+  if (log) log.innerHTML = '';
+  setProgress(0);
+
   document.getElementById('scan-state-enter').style.display    = 'none';
   document.getElementById('scan-state-progress').style.display = 'block';
   document.getElementById('scan-progress-domain').textContent  = domain;
-  runScanAnimation(domain, url);
+
+  const results = buildScanResults(domain);
+  sessionStorage.setItem('nfy_scan_results', JSON.stringify(results));
+
+  const steps = buildLogSteps(results, logScanStep);
+  steps.forEach(([delay, pct, fn], i) => {
+    setTimeout(() => {
+      setProgress(pct);
+      if (fn) fn();
+      else showScanResults(results);  // last step
+    }, delay);
+  });
 }
 
 function logScanStep(msg, type) {
-  const log    = document.getElementById('scan-log');
+  const log = document.getElementById('scan-log');
   if (!log) return;
   const colors = { ok:'var(--green)', warn:'var(--warn)', error:'var(--danger)', info:'var(--text2)' };
   const icons  = { ok:'✓', warn:'⚠', error:'✗', info:'·' };
@@ -1563,88 +1717,54 @@ function setProgress(pct) {
   if (lbl) lbl.textContent = Math.round(pct) + '%';
 }
 
-function runScanAnimation(domain, url) {
-  const steps = [
-    [400,   5, () => logScanStep('Connecting to ' + domain + '…', 'info')],
-    [900,  12, () => logScanStep('Loading homepage in a clean browser (no cookies, no consent)', 'info')],
-    [1400, 20, () => logScanStep('Reading page source and network waterfall…', 'info')],
-    [1900, 28, () => logScanStep('GTM container detected — reading tag configuration', 'info')],
-    [2400, 36, () => logScanStep('Crawling /products, /collections, /cart, /checkout…', 'info')],
-    [3000, 45, () => logScanStep('Phase 1 complete — baseline network requests captured from 24 pages', 'ok')],
-    [3500, 54, () => logScanStep('Phase 2: replaying pages with consent GRANTED — comparing request sets', 'info')],
-    [4000, 63, () => logScanStep('Classifying 6 third-party domains against vendor registry…', 'info')],
-    [4400, 70, () => {
-      ['connect.facebook.net → Meta Pixel','analytics.google.com → GA4','static.klaviyo.com → Klaviyo','bat.bing.com → Microsoft Ads','static.zdassets.com → Zendesk','cdn.justuno.com → Unclassified ⚠'].forEach(v => logScanStep(v, 'info'));
-    }],
-    [5000, 80, () => logScanStep('Phase 3: identifying scripts that fired BEFORE consent…', 'info')],
-    [5500, 88, () => {
-      logScanStep('CRITICAL: Meta Pixel fired on /checkout before consent', 'error');
-      logScanStep('HIGH: Klaviyo fires via GTM Custom HTML — no consent gate', 'error');
-      logScanStep('MODERATE: Zendesk widget loads before user opens chat', 'warn');
-      logScanStep('LOW: 1 unclassified script — cdn.justuno.com', 'warn');
-    }],
-    [6000, 95, () => logScanStep('Generating report…', 'info')],
-    [6500, 100, () => showScanResults(domain)],
-  ];
-  steps.forEach(([delay, pct, fn]) => setTimeout(() => { setProgress(pct); fn(); }, delay));
-}
-
-function showScanResults(domain) {
+function showScanResults(results) {
   document.getElementById('scan-state-progress').style.display = 'none';
   document.getElementById('scan-state-results').style.display  = 'block';
 
-  // Update step 3 indicator to green
+  // Step 3 indicator → green
   ['step3-dot','step3-line','step3-label'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (id === 'step3-dot') { el.style.background = 'var(--green)'; el.style.color = '#fff'; el.style.borderColor = 'transparent'; }
-    if (id === 'step3-line') el.style.background = 'var(--green)';
-    if (id === 'step3-label') el.style.color = 'var(--green)';
+    if (id === 'step3-dot')  { el.style.background = 'var(--green)'; el.style.color = '#fff'; el.style.borderColor = 'transparent'; }
+    if (id === 'step3-line') { el.style.background = 'var(--green)'; }
+    if (id === 'step3-label'){ el.style.color = 'var(--green)'; }
   });
 
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('scan-result-headline', '⚠ ' + domain + ' has 2 critical issues');
-  set('scan-result-sub', 'Meta Pixel and Klaviyo are firing before your visitors give consent — creating legal exposure for California, Virginia, and Florida visitors.');
-  set('res-pages', '24');
-  set('res-vendors', '6');
-  set('res-preconsent', '2');
-  set('res-unclass', '1');
+  const { pages, vendors, preConsent, unclassified, domain } = results;
+  const preCount = preConsent.length;
+  const unCount  = unclassified.length;
 
-  const findings = [
-    { badge:'bd', risk:'Critical', title:'Meta Pixel firing before affirmative consent',
-      desc:'Network requests to connect.facebook.net detected before a consent choice was recorded. Fires on /checkout and /cart — your highest-value pages.',
-      url:'connect.facebook.net/en_US/fbevents.js · /checkout, /cart' },
-    { badge:'bw', risk:'High', title:'Klaviyo onsite script not gated in GTM',
-      desc:'The Klaviyo identify/track script fires via a GTM Custom HTML tag with no consent trigger condition. Needs to be moved into the Noticeify vendor registry.',
-      url:'static.klaviyo.com/onsite/js/klaviyo.js · GTM Custom HTML' },
-    { badge:'bw', risk:'Moderate', title:'Zendesk widget loads before user opens chat',
-      desc:'Correctly blocked in the vendor registry — verify GTM trigger does not bypass the consent gate.',
-      url:'static.zdassets.com/ekr/snippet.js · 19 pages' },
-    { badge:'bb', risk:'Low', title:'1 unclassified third-party script',
-      desc:'An external script is not in the vendor registry. Assign a consent category or remove it.',
-      url:'cdn.justuno.com/visitorv2.js' },
-  ];
+  const headlineEl = document.getElementById('scan-result-headline');
+  const subEl      = document.getElementById('scan-result-sub');
+  if (headlineEl) {
+    headlineEl.textContent = preCount === 0
+      ? `✓ ${domain} looks clean — no critical pre-consent fires`
+      : `⚠ ${domain} has ${preCount} pre-consent issue${preCount > 1 ? 's' : ''}`;
+  }
+  if (subEl) {
+    subEl.textContent = preCount === 0
+      ? `${pages} pages crawled, ${vendors.length} third-party scripts found — none detected firing before consent. Add Noticeify to keep it that way and get an audit trail.`
+      : preConsent.map(v => `${v.name} is firing before your visitors give consent`).join(' and ') + '. This creates legal exposure for visitors in California, Virginia, and other US privacy law states.';
+  }
+
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('res-pages',       pages);
+  set('res-vendors',     vendors.length);
+  set('res-preconsent',  preCount);
+  set('res-unclass',     unCount);
+
+  // Color pre-consent count
+  const preEl = document.getElementById('res-preconsent');
+  if (preEl) preEl.style.color = preCount > 0 ? 'var(--danger)' : 'var(--green)';
 
   const c = document.getElementById('res-findings');
-  if (c) c.innerHTML = findings.map(f => `
-    <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:8px">
-      <span style="flex-shrink:0;margin-top:1px"><span class="badge ${f.badge}">${f.risk}</span></span>
-      <div>
-        <div style="font-size:12px;font-weight:500;margin-bottom:3px">${f.title}</div>
-        <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:3px">${f.desc}</div>
-        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${f.url}</div>
-      </div>
-    </div>`).join('');
+  if (c) c.innerHTML = buildFindingsHTML(results);
 
   sessionStorage.setItem('nfy_scanned', 'done');
-
-  // Fade-in animation
-  const s = document.createElement('style');
-  s.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}';
-  document.head.appendChild(s);
 }
 
-// ── Public scanner (marketing page) ─────────────────────────────────────
+// ── Public scanner (marketing page) ──────────────────────────────────────────
+
 function startPublicScan() {
   const input = document.getElementById('pub-scan-input');
   const errEl = document.getElementById('pub-scan-err');
@@ -1657,14 +1777,30 @@ function startPublicScan() {
   if (errEl) errEl.style.display = 'none';
   let domain;
   try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch(_) { domain = url; }
+
+  // Reset state
+  const log = document.getElementById('pub-scan-log');
+  if (log) log.innerHTML = '';
+  pubSetProgress(0);
+
   document.getElementById('pub-scan-enter').style.display    = 'none';
   document.getElementById('pub-scan-progress').style.display = 'block';
   document.getElementById('pub-scan-domain').textContent     = domain;
-  runPublicScanAnimation(domain);
+
+  const results = buildScanResults(domain);
+
+  const steps = buildLogSteps(results, pubLogStep);
+  steps.forEach(([delay, pct, fn]) => {
+    setTimeout(() => {
+      pubSetProgress(pct);
+      if (fn) fn();
+      else showPublicResults(results);
+    }, delay);
+  });
 }
 
 function pubLogStep(msg, type) {
-  const log    = document.getElementById('pub-scan-log');
+  const log = document.getElementById('pub-scan-log');
   if (!log) return;
   const colors = { ok:'var(--green)', warn:'var(--warn)', error:'var(--danger)', info:'var(--text2)' };
   const icons  = { ok:'✓', warn:'⚠', error:'✗', info:'·' };
@@ -1682,54 +1818,45 @@ function pubSetProgress(pct) {
   if (lbl) lbl.textContent = Math.round(pct) + '%';
 }
 
-function runPublicScanAnimation(domain) {
-  const steps = [
-    [400,   5, () => pubLogStep('Connecting to ' + domain + '…', 'info')],
-    [900,  12, () => pubLogStep('Loading homepage in clean browser (no cookies)', 'info')],
-    [1500, 22, () => pubLogStep('GTM container detected — reading tag configuration', 'info')],
-    [2100, 32, () => pubLogStep('Crawling /products, /collections, /cart, /checkout…', 'info')],
-    [2700, 44, () => pubLogStep('Phase 1 complete — 24 pages crawled', 'ok')],
-    [3200, 54, () => pubLogStep('Phase 2: replaying with consent granted — diffing requests', 'info')],
-    [3800, 63, () => pubLogStep('Classifying 6 third-party domains…', 'info')],
-    [4200, 70, () => {
-      ['Meta Pixel (connect.facebook.net)','Google Analytics 4','Klaviyo','Microsoft Ads','Zendesk Chat','Unclassified script (cdn.justuno.com)'].forEach(v => pubLogStep(v, 'info'));
-    }],
-    [4900, 82, () => pubLogStep('Phase 3: identifying pre-consent fires…', 'info')],
-    [5400, 90, () => {
-      pubLogStep('CRITICAL: Meta Pixel fired before consent on /checkout', 'error');
-      pubLogStep('HIGH: Klaviyo — no consent gate in GTM', 'error');
-    }],
-    [5900, 100, () => showPublicResults(domain)],
-  ];
-  steps.forEach(([delay, pct, fn]) => setTimeout(() => { pubSetProgress(pct); fn(); }, delay));
-}
-
-function showPublicResults(domain) {
+function showPublicResults(results) {
   document.getElementById('pub-scan-progress').style.display = 'none';
   document.getElementById('pub-scan-results').style.display  = 'block';
+
+  const { pages, vendors, preConsent, unclassified, domain } = results;
+  const preCount = preConsent.length;
+  const unCount  = unclassified.length;
+
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  set('pub-result-headline', '⚠ ' + domain + ' has 2 critical issues');
-  set('pub-result-sub', 'Meta Pixel and Klaviyo are firing before visitors give consent — creating legal exposure for California and Virginia visitors.');
-  set('pub-res-pages', '24'); set('pub-res-vendors', '6'); set('pub-res-pre', '2'); set('pub-res-un', '1');
-  const findings = [
-    {badge:'bd',risk:'Critical',title:'Meta Pixel firing before consent',desc:'Fires on /checkout and /cart before any consent decision is recorded.',url:'connect.facebook.net/en_US/fbevents.js'},
-    {badge:'bw',risk:'High',title:'Klaviyo not gated in GTM',desc:'Custom HTML tag fires without a Noticeify consent trigger condition.',url:'static.klaviyo.com/onsite/js/klaviyo.js'},
-    {badge:'bw',risk:'Moderate',title:'Zendesk loads before chat opened',desc:'Verify GTM trigger doesn\'t bypass consent gate.',url:'static.zdassets.com/ekr/snippet.js'},
-    {badge:'bb',risk:'Low',title:'1 unclassified script',desc:'cdn.justuno.com not in vendor registry. Assign a category.',url:'cdn.justuno.com/visitorv2.js'},
-  ];
+  const headlineEl = document.getElementById('pub-result-headline');
+  if (headlineEl) {
+    headlineEl.textContent = preCount === 0
+      ? `✓ ${domain} — no critical pre-consent fires detected`
+      : `⚠ ${domain} has ${preCount} pre-consent issue${preCount > 1 ? 's' : ''}`;
+  }
+  const subEl = document.getElementById('pub-result-sub');
+  if (subEl) {
+    subEl.textContent = preCount === 0
+      ? `${pages} pages crawled, ${vendors.length} third-party scripts found — none detected firing before consent.`
+      : preConsent.map(v => `${v.name} is firing before visitors give consent`).join(' and ') + '. This creates legal exposure under CCPA and US State Privacy Laws.';
+  }
+
+  set('pub-res-pages',   pages);
+  set('pub-res-vendors', vendors.length);
+  set('pub-res-pre',     preCount);
+  set('pub-res-un',      unCount);
+
+  const preEl = document.getElementById('pub-res-pre');
+  if (preEl) preEl.style.color = preCount > 0 ? 'var(--danger)' : 'var(--green)';
+
   const c = document.getElementById('pub-findings');
-  if (c) c.innerHTML = findings.map(f => `
-    <div style="display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:7px">
-      <span style="flex-shrink:0;margin-top:1px"><span class="badge ${f.badge}">${f.risk}</span></span>
-      <div><div style="font-size:12px;font-weight:500;margin-bottom:2px">${f.title}</div><div style="font-size:11px;color:var(--text2);margin-bottom:2px">${f.desc}</div><div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${f.url}</div></div>
-    </div>`).join('');
+  if (c) c.innerHTML = buildFindingsHTML(results);
 }
 
 function pubScanAgain() {
   document.getElementById('pub-scan-results').style.display  = 'none';
   document.getElementById('pub-scan-enter').style.display    = 'block';
-  document.getElementById('pub-scan-input').value = '';
-  document.getElementById('pub-scan-input').focus();
+  const inp = document.getElementById('pub-scan-input');
+  if (inp) { inp.value = ''; inp.focus(); }
 }
 </script>
 </body>
