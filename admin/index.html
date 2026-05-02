@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Noticeify Admin</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2435;--bg4:#252d40;
+  --text:#e8eaf0;--text2:#8b93a8;--text3:#565e75;
+  --b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);
+  --blue:#3b82f6;--blue-l:rgba(59,130,246,.12);--blue-d:#1d4ed8;
+  --green:#10b981;--green-l:rgba(16,185,129,.12);
+  --yellow:#f59e0b;--yellow-l:rgba(245,158,11,.12);
+  --red:#ef4444;--red-l:rgba(239,68,68,.12);
+  --purple:#8b5cf6;--purple-l:rgba(139,92,246,.12);
+  --orange:#f97316;--orange-l:rgba(249,115,22,.12);
+  --r:6px;--rl:10px;
+  --f:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"SF Mono","Fira Code","Consolas",monospace;
+}
+html{height:100%}
+body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;height:100%;display:flex;flex-direction:column}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:var(--f);cursor:pointer}
+input,select,textarea{font-family:var(--f)}
+
+/* ── GATE ── */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+.gate-card{background:var(--bg2);border:.5px solid var(--b2);border-radius:var(--rl);padding:32px 28px;width:340px}
+.gate-logo{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.gate-mark{width:28px;height:28px;border-radius:7px;background:var(--red);display:flex;align-items:center;justify-content:center}
+.gate-mark svg{width:14px;height:14px}
+.gate-title{font-size:15px;font-weight:600}
+.gate-sub{font-size:11px;color:var(--text2);margin-bottom:20px}
+.gate-inp{width:100%;background:var(--bg3);border:.5px solid var(--b2);border-radius:var(--r);color:var(--text);font-size:12px;padding:7px 11px;outline:none;transition:border-color .15s;margin-bottom:9px}
+.gate-inp:focus{border-color:var(--blue)}
+.gate-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:8px;font-size:13px;cursor:pointer;transition:background .12s}
+.gate-btn:hover{background:var(--blue-d)}
+.gate-err{font-size:11px;color:var(--red);margin-top:8px;text-align:center;display:none}
+.gate-badge{display:inline-flex;align-items:center;gap:5px;background:var(--red-l);color:var(--red);font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px;margin-bottom:14px}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:48px;background:var(--bg2);border-bottom:.5px solid var(--b);flex-shrink:0}
+.topbar-logo{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.admin-mark{width:24px;height:24px;border-radius:6px;background:var(--red);display:flex;align-items:center;justify-content:center}
+.admin-mark svg{width:12px;height:12px}
+.admin-label{background:var(--red-l);color:var(--red);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;letter-spacing:.03em}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-user{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.topbar-avatar{width:26px;height:26px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff}
+
+/* ── MAIN LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+.sb{width:210px;background:var(--bg2);border-right:.5px solid var(--b);overflow-y:auto;flex-shrink:0;padding:10px 0}
+.sb-sec{margin-bottom:2px}
+.sb-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:9px 14px 3px}
+.sbi{display:flex;align-items:center;gap:7px;padding:7px 14px;font-size:12px;color:var(--text2);border:none;background:none;width:100%;text-align:left;cursor:pointer;transition:background .1s,color .1s;border-radius:0}
+.sbi:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.sbi.on{background:rgba(59,130,246,.12);color:var(--blue);font-weight:500}
+.sbi svg{width:13px;height:13px;flex-shrink:0;opacity:.7}
+.sbi.on svg{opacity:1}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px}
+.sb-badge-y{margin-left:auto;background:var(--yellow);color:#000;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px}
+.main{flex:1;overflow-y:auto;background:var(--bg);padding:24px 28px}
+
+/* ── TAB PANELS ── */
+.tp{display:none}.tp.on{display:block}
+
+/* ── PAGE HEADERS ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.ph-title{font-size:16px;font-weight:600;margin-bottom:3px}
+.ph-sub{font-size:12px;color:var(--text2)}
+
+/* ── BUTTONS ── */
+.btn{padding:6px 14px;border-radius:var(--r);font-size:12px;border:.5px solid var(--b2);background:none;color:var(--text);cursor:pointer;transition:background .12s}
+.btn:hover{background:rgba(255,255,255,.06)}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:var(--blue-d);border-color:var(--blue-d)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-red:hover{background:#dc2626;border-color:#dc2626}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-xs{padding:2px 7px;font-size:10px;border-radius:4px}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:.5px solid var(--b);border-radius:var(--rl);padding:16px 18px}
+.card-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+
+/* ── STAT GRID ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--bg2);border:.5px solid var(--b);border-radius:var(--rl);padding:14px 16px}
+.stat-val{font-size:24px;font-weight:600;margin-bottom:3px}
+.stat-label{font-size:11px;color:var(--text2)}
+.stat-delta{font-size:10px;margin-top:3px}
+.up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--text3)}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
+.b-green{background:var(--green-l);color:var(--green)}
+.b-red{background:var(--red-l);color:var(--red)}
+.b-blue{background:var(--blue-l);color:var(--blue)}
+.b-yellow{background:var(--yellow-l);color:var(--yellow)}
+.b-purple{background:var(--purple-l);color:var(--purple)}
+.b-orange{background:var(--orange-l);color:var(--orange)}
+.b-gray{background:rgba(255,255,255,.06);color:var(--text2)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border-bottom:.5px solid var(--b);background:var(--bg3)}
+.tbl td{padding:10px 12px;border-bottom:.5px solid var(--b);vertical-align:middle;color:var(--text2)}
+.tbl td:first-child{color:var(--text);font-weight:500}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.tbl .actions{display:flex;gap:5px;opacity:0;transition:opacity .15s}
+.tbl tr:hover .actions{opacity:1}
+
+/* ── FORM ── */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:4px}
+.form-input{width:100%;background:var(--bg3);border:.5px solid var(--b2);border-radius:var(--r);color:var(--text);font-size:12px;padding:7px 11px;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--blue)}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23565e75' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.form-hint{font-size:10px;color:var(--text3);margin-top:3px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--bg2);border:.5px solid var(--b2);border-radius:var(--rl);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:.5px solid var(--b)}
+.modal-title{font-size:14px;font-weight:600}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:.5px solid var(--b);background:var(--bg3)}
+
+/* ── ALERT ── */
+.alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r);margin-bottom:14px;font-size:12px}
+.alert-red{background:var(--red-l);border:.5px solid rgba(239,68,68,.25);color:var(--red)}
+.alert-yellow{background:var(--yellow-l);border:.5px solid rgba(245,158,11,.25);color:var(--yellow)}
+.alert-green{background:var(--green-l);border:.5px solid rgba(16,185,129,.25);color:var(--green)}
+.alert-blue{background:var(--blue-l);border:.5px solid rgba(59,130,246,.25);color:var(--blue)}
+.alert strong{flex:1;font-weight:500}
+
+/* ── TOGGLE ── */
+.tog{position:relative;width:34px;height:19px;flex-shrink:0;cursor:pointer}
+.tog input{position:absolute;opacity:0;width:100%;height:100%;z-index:1;cursor:pointer;margin:0}
+.tt{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:10px;transition:background .18s}
+.th{position:absolute;top:2px;left:2px;width:15px;height:15px;background:#fff;border-radius:50%;transition:transform .18s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.tog input:checked~.tt{background:var(--green)}
+.tog input:checked~.th{transform:translateX(15px)}
+
+/* ── SEARCH BAR ── */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--bg3);border:.5px solid var(--b2);border-radius:var(--r);padding:5px 10px;width:240px}
+.search-bar svg{width:13px;height:13px;color:var(--text3);flex-shrink:0}
+.search-bar input{background:none;border:none;color:var(--text);font-size:12px;outline:none;width:100%}
+
+/* ── SPARKLINE ── */
+.spark{height:32px;display:flex;align-items:flex-end;gap:2px}
+.spark-bar{flex:1;border-radius:2px 2px 0 0;min-height:3px}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding:10px 0;border-bottom:.5px solid var(--b)}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.tl-content{flex:1}
+.tl-title{font-size:12px;font-weight:500;margin-bottom:2px}
+.tl-meta{font-size:11px;color:var(--text3)}
+
+/* ── CODE BLOCK ── */
+.code{background:var(--bg3);border:.5px solid var(--b);border-radius:var(--r);padding:10px 12px;font-size:11px;font-family:var(--mono);color:var(--text2);line-height:1.8;overflow-x:auto}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:.5px solid var(--b);margin-bottom:18px}
+.tab{padding:7px 14px;border:none;background:none;font-size:12px;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-.5px;cursor:pointer;font-family:var(--f);transition:color .1s,border-color .1s}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--text);font-weight:500;border-bottom-color:var(--blue)}
+
+/* ── MISC ── */
+.sep{height:.5px;background:var(--b);margin:16px 0}
+.tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;background:rgba(255,255,255,.06);color:var(--text2)}
+.mono{font-family:var(--mono);font-size:11px}
+.text-red{color:var(--red)}.text-green{color:var(--green)}.text-blue{color:var(--blue)}.text-yellow{color:var(--yellow)}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-8{gap:8px}.gap-12{gap:12px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN GATE
+══════════════════════════════════════ -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">
+      <div class="gate-mark"><svg viewBox="0 0 14 14" fill="none"><path d="M7 2L11 4v5.5L7 12 3 9.5V4L7 2z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5v3M7 9v.5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      <span style="font-size:14px;font-weight:600">Noticeify Admin</span>
+    </div>
+    <div class="gate-badge">🔒 INTERNAL ONLY</div>
+    <div class="gate-title">Sign in to Admin Portal</div>
+    <div class="gate-sub" style="margin-bottom:20px">For company staff and authorized support personnel only.</div>
+    <input id="gate-email" class="gate-inp" type="email" placeholder="admin@noticeify.com" onkeydown="if(event.key==='Enter')document.getElementById('gate-pw').focus()"/>
+    <input id="gate-pw" class="gate-inp" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')gateLogin()"/>
+    <button class="gate-btn" onclick="gateLogin()">Sign in to Admin</button>
+    <div id="gate-err" class="gate-err">Invalid credentials. Try admin@noticeify.com / admin123</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════ -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="topbar-logo">
+      <div class="admin-mark"><svg viewBox="0 0 14 14" fill="none"><path d="M7 2L11 4v5.5L7 12 3 9.5V4L7 2z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5v3M7 9v.5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      Noticeify
+    </div>
+    <span class="admin-label">ADMIN</span>
+    <div style="width:.5px;height:16px;background:var(--b)"></div>
+    <span style="font-size:11px;color:var(--text3)" id="admin-env-label">Production</span>
+  </div>
+  <div class="topbar-right">
+    <div style="font-size:11px;color:var(--text3)">
+      <span id="admin-time"></span>
+    </div>
+    <div class="topbar-user">
+      <div class="topbar-avatar" id="admin-avatar">A</div>
+      <span id="admin-email-label">admin</span>
+    </div>
+    <button class="btn btn-sm" style="font-size:11px;color:var(--red);border-color:var(--red)" onclick="adminLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN LAYOUT
+══════════════════════════════════════ -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-sec">
+      <div class="sb-lbl">Overview</div>
+      <button class="sbi on" onclick="tab('overview',this)"><svg viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1.5" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.1"/><rect x="7.5" y="1.5" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.1"/><rect x="1.5" y="7.5" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.1"/><rect x="7.5" y="7.5" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.1"/></svg>Dashboard</button>
+      <button class="sbi" onclick="tab('activity',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M1.5 11l3-4 2.5 2 2.5-5 2 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>Activity Log</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-lbl">Customers</div>
+      <button class="sbi" onclick="tab('customers',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M2 11.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>All Accounts<span class="sb-badge-y">2</span></button>
+      <button class="sbi" onclick="tab('websites',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.1"/></svg>Websites / Clients</button>
+      <button class="sbi" onclick="tab('consent-data',this)"><svg viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1" width="10" height="11" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M4 4.5h5M4 6.5h5M4 8.5h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Consent Events</button>
+      <button class="sbi" onclick="tab('scanner-runs',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="3.5" stroke="currentColor" stroke-width="1.1"/><path d="M8.5 8.5l3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Scanner Runs</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-lbl">Support</div>
+      <button class="sbi" onclick="tab('tickets',this)"><svg viewBox="0 0 13 13" fill="none"><rect x="1.5" y="2.5" width="10" height="8" rx="1.2" stroke="currentColor" stroke-width="1.1"/><path d="M4 5.5h5M4 7.5h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Support Tickets<span class="sb-badge">3</span></button>
+      <button class="sbi" onclick="tab('impersonate',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M2 11c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="6.5" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M10 7.5l1.5 1.5-1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>Impersonate</button>
+      <button class="sbi" onclick="tab('audit',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5L11 4v5.5L6.5 12 2 9.5V4L6.5 1.5z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M6.5 4.5v3M6.5 8.5v.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Audit Trail</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-lbl">Finance</div>
+      <button class="sbi" onclick="tab('billing-admin',this)"><svg viewBox="0 0 13 13" fill="none"><rect x="1.5" y="3" width="10" height="7" rx="1.2" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 5.5h10" stroke="currentColor" stroke-width="1.1"/><path d="M4 8h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Subscriptions</button>
+      <button class="sbi" onclick="tab('revenue',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M6.5 2v9M4 4.5C4 3.5 5 3 6.5 3s2.5.7 2.5 1.8c0 1.5-5 1.2-5 3 0 1.2 1 1.9 2.5 1.9s2.5-.6 2.5-1.8" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Revenue</button>
+    </div>
+    <div class="sb-sec">
+      <div class="sb-lbl">System</div>
+      <button class="sbi" onclick="tab('api-admin',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M3 6.5h7M8 4l2.5 2.5L8 9M5 4L2.5 6.5 5 9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>API &amp; Keys</button>
+      <button class="sbi" onclick="tab('health',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5h2.5l2-4 2 8 2-4h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>System Health</button>
+      <button class="sbi" onclick="tab('config',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="2" stroke="currentColor" stroke-width="1.1"/><path d="M6.5 1v2M6.5 10v2M1 6.5h2M10 6.5h2M3.2 3.2l1.4 1.4M8.4 8.4l1.4 1.4M3.2 9.8l1.4-1.4M8.4 4.6l1.4-1.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Config</button>
+      <button class="sbi" onclick="tab('staff',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="4" cy="5" r="2" stroke="currentColor" stroke-width="1.1"/><circle cx="9" cy="5" r="2" stroke="currentColor" stroke-width="1.1"/><path d="M1 11c0-2 1.5-3 3-3s3 1 3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M9 8c1.5 0 2.5.8 2.5 2.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Staff Accounts</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="tp on" id="tp-overview">
+      <div class="ph"><div><div class="ph-title">Admin Overview</div><div class="ph-sub">Platform-wide metrics — refreshed every 60s</div></div>
+        <div style="display:flex;gap:8px">
+          <div class="badge b-green">● Live</div>
+          <button class="btn btn-sm" onclick="showToast('Data refreshed.')">Refresh</button>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val text-blue">2</div><div class="stat-label">Total accounts</div><div class="stat-delta up">↑ 2 this month</div></div>
+        <div class="stat"><div class="stat-val">1,368</div><div class="stat-label">Consent events (7d)</div><div class="stat-delta up">↑ 12% vs prev week</div></div>
+        <div class="stat"><div class="stat-val text-green">$0</div><div class="stat-label">MRR</div><div class="stat-delta neu">Free plan only</div></div>
+        <div class="stat"><div class="stat-val text-yellow">3</div><div class="stat-label">Open support tickets</div><div class="stat-delta dn">↑ 2 since yesterday</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px">
+        <div class="card">
+          <div class="card-title">Consent events — last 14 days (all clients)</div>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:6px">
+            ${[40,55,48,70,62,80,75,90,85,110,100,95,118,106].map((h,i)=>`<div style="flex:1;height:${Math.round(h/110*100)}%;background:${i>10?'var(--blue)':'rgba(59,130,246,.35)'};border-radius:2px 2px 0 0"></div>`).join('')}
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3)"><span>Apr 18</span><span>Apr 25</span><span>May 1</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Active clients</div>
+          ${[['ocusleep.com','nfy_ocusleep_prod','Active'],['39dollarglasses.com','nfy_39dg_prod','Inactive']].map(([d,k,s])=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid var(--b)">
+            <div style="width:7px;height:7px;border-radius:50%;background:${s==='Active'?'var(--green)':'var(--text3)'}"></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:500">${d}</div><div class="mono" style="color:var(--text3)">${k}</div></div>
+            <span class="badge ${s==='Active'?'b-green':'b-gray'}">${s}</span>
+          </div>`).join('')}
+          <div style="padding-top:10px"><button class="btn btn-sm btn-blue" onclick="tab('customers',null)" style="font-size:11px">Manage accounts</button></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:14px">
+        <div class="card">
+          <div class="card-title">Open tickets</div>
+          ${[['Marc B.','Banner not showing on mobile','High','2h ago'],['Marc B.','GCM signals incorrect','Medium','5h ago'],['Marc B.','Export CSV empty','Low','1d ago']].map(([u,t,p,time])=>`
+          <div style="padding:8px 0;border-bottom:.5px solid var(--b);cursor:pointer" onclick="tab('tickets',null)">
+            <div style="font-size:12px;font-weight:500;margin-bottom:2px">${t}</div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--text3)">${u} · ${time}</span><span class="badge ${p==='High'?'b-red':p==='Medium'?'b-yellow':'b-gray'}">${p}</span></div>
+          </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-title">Scanner health</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text2)">Last scan run</span><span>Apr 29, 2026</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text2)">Next scheduled</span><span>May 6, 2026</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text2)">Pre-consent findings</span><span class="text-red">2 critical</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text2)">Worker status</span><span class="text-green">Running</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text2)">Jobs queued</span><span>0</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recent admin activity</div>
+          <div class="timeline">
+            ${[['blue','API key created','nfy_39dg_prod','2h ago'],['green','Client activated','ocusleep.com','5h ago'],['yellow','Ticket assigned','#1023','1d ago'],['red','Scan critical finding','ocusleep.com','2d ago']].map(([c,t,d,time])=>`
+            <div class="tl-item"><div class="tl-dot" style="background:var(--${c})"></div><div class="tl-content"><div class="tl-title">${t}</div><div class="tl-meta">${d} · ${time}</div></div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ACTIVITY LOG ══ -->
+    <div class="tp" id="tp-activity">
+      <div class="ph"><div><div class="ph-title">Activity Log</div><div class="ph-sub">All admin and system actions across the platform.</div></div>
+        <div style="display:flex;gap:8px">
+          <div class="search-bar"><svg viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="3.5" stroke="currentColor" stroke-width="1.1"/><path d="M8.5 8.5l3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input placeholder="Search actions..."/></div>
+          <button class="btn btn-sm">Export CSV</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Target</th><th>IP</th><th>Result</th></tr></thead>
+          <tbody>
+            ${[
+              ['May 1, 01:42','admin@noticeify.com','API key created','nfy_39dg_prod','192.168.1.1','b-green Success'],
+              ['May 1, 01:38','admin@noticeify.com','Client settings updated','ocusleep.com','192.168.1.1','b-green Success'],
+              ['May 1, 01:30','system','Scanner run completed','ocusleep.com','—','b-green Success'],
+              ['Apr 30, 23:15','support@noticeify.com','Ticket resolved','#1020','10.0.0.2','b-green Success'],
+              ['Apr 30, 22:44','admin@noticeify.com','Impersonated user','marc@ocusleep.com','192.168.1.1','b-yellow Logged'],
+              ['Apr 30, 21:10','system','GCM check passed','ocusleep.com','—','b-green Success'],
+              ['Apr 30, 19:55','admin@noticeify.com','Plan downgraded','39dollarglasses.com','192.168.1.1','b-green Success'],
+              ['Apr 30, 18:22','support@noticeify.com','Consent log exported','ocusleep.com','10.0.0.2','b-green Success'],
+              ['Apr 30, 17:01','system','Scanner worker started','—','—','b-green Success'],
+              ['Apr 30, 15:33','admin@noticeify.com','Admin login','admin portal','203.0.113.5','b-green Success'],
+            ].map(([ts,actor,action,target,ip,res])=>{
+              const [cls,...rest]=res.split(' '); const label=rest.join(' ');
+              return `<tr>
+                <td class="mono" style="color:var(--text3);font-weight:400">${ts}</td>
+                <td style="color:var(--text2);font-weight:400">${actor}</td>
+                <td>${action}</td>
+                <td class="mono" style="color:var(--blue);font-weight:400">${target}</td>
+                <td class="mono" style="color:var(--text3);font-weight:400">${ip}</td>
+                <td><span class="badge ${cls}">${label}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <div style="padding:10px 14px;font-size:11px;color:var(--text3);border-top:.5px solid var(--b)">Showing 10 of 847 events · <a href="#">Export all</a></div>
+      </div>
+    </div>
+
+    <!-- ══ CUSTOMERS ══ -->
+    <div class="tp" id="tp-customers">
+      <div class="ph"><div><div class="ph-title">Customer Accounts</div><div class="ph-sub">All registered users and their account status.</div></div>
+        <div style="display:flex;gap:8px">
+          <div class="search-bar"><svg viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="3.5" stroke="currentColor" stroke-width="1.1"/><path d="M8.5 8.5l3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input placeholder="Search by email or domain..."/></div>
+          <button class="btn btn-sm btn-blue" onclick="openModal('modal-new-customer')">+ New account</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Account</th><th>Email</th><th>Plan</th><th>Websites</th><th>Consents (7d)</th><th>Last active</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Marc Ballman</td>
+              <td style="font-weight:400;color:var(--text2)">marc@ocusleep.com</td>
+              <td><span class="badge b-gray">Starter</span></td>
+              <td>1</td>
+              <td>1,368</td>
+              <td>Today, 1:42 AM</td>
+              <td><span class="badge b-green">Active</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="tab('impersonate',null)">Impersonate</button><button class="btn btn-xs" onclick="openModal('modal-edit-customer')">Edit</button><button class="btn btn-xs" style="color:var(--red)">Suspend</button></div></td>
+            </tr>
+            <tr>
+              <td>Marc Ballman</td>
+              <td style="font-weight:400;color:var(--text2)">marc@39dollarglasses.com</td>
+              <td><span class="badge b-gray">Starter</span></td>
+              <td>1</td>
+              <td>0</td>
+              <td>Apr 15, 2026</td>
+              <td><span class="badge b-yellow">Inactive</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="tab('impersonate',null)">Impersonate</button><button class="btn btn-xs" onclick="openModal('modal-edit-customer')">Edit</button><button class="btn btn-xs btn-red btn-xs" onclick="showToast('Account suspended.')">Suspend</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ WEBSITES / CLIENTS ══ -->
+    <div class="tp" id="tp-websites">
+      <div class="ph"><div><div class="ph-title">Websites &amp; Client IDs</div><div class="ph-sub">All connected domains, client keys, and configuration.</div></div>
+        <button class="btn btn-sm btn-blue" onclick="openModal('modal-new-client')">+ Add client</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Domain</th><th>Client Key</th><th>Client ID (UUID)</th><th>Jurisdiction</th><th>GCM</th><th>Healthcare</th><th>Created</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td>ocusleep.com</td>
+              <td class="mono">nfy_ocusleep_prod</td>
+              <td class="mono" style="font-size:10px;color:var(--text3)">a13f5625-8ad0-4ca7-b9a9-006d74f2c283</td>
+              <td>US (CCPA)</td>
+              <td><span class="badge b-green">On</span></td>
+              <td><span class="badge b-green">On</span></td>
+              <td style="color:var(--text3)">May 1, 2026</td>
+              <td><span class="badge b-green">Active</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="openModal('modal-edit-client')">Edit</button><button class="btn btn-xs" onclick="showToast('Config copied.')">Copy config</button><button class="btn btn-xs" style="color:var(--red)" onclick="showToast('Client deactivated.')">Deactivate</button></div></td>
+            </tr>
+            <tr>
+              <td>39dollarglasses.com</td>
+              <td class="mono">nfy_39dg_prod</td>
+              <td class="mono" style="font-size:10px;color:var(--text3)">f2617e75-e45c-4c36-9a1a-1da507f7a7d1</td>
+              <td>US+GDPR</td>
+              <td><span class="badge b-green">On</span></td>
+              <td><span class="badge b-gray">Off</span></td>
+              <td style="color:var(--text3)">Apr 15, 2026</td>
+              <td><span class="badge b-yellow">Inactive</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="openModal('modal-edit-client')">Edit</button><button class="btn btn-xs" onclick="showToast('Config copied.')">Copy config</button><button class="btn btn-xs" style="color:var(--green)" onclick="showToast('Client reactivated.')">Activate</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ CONSENT EVENTS ══ -->
+    <div class="tp" id="tp-consent-data">
+      <div class="ph"><div><div class="ph-title">Consent Events</div><div class="ph-sub">Platform-wide consent log. Search, filter, and export for compliance.</div></div>
+        <div style="display:flex;gap:8px">
+          <select class="form-input form-select" style="width:160px;padding:5px 28px 5px 10px"><option>All clients</option><option>ocusleep.com</option><option>39dollarglasses.com</option></select>
+          <button class="btn btn-sm btn-blue" onclick="showToast('CSV exported.')">Export CSV</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+        <div class="stat"><div class="stat-val">1,368</div><div class="stat-label">Total events (7d)</div></div>
+        <div class="stat"><div class="stat-val text-green">54%</div><div class="stat-label">Acceptance rate</div></div>
+        <div class="stat"><div class="stat-val">8.4%</div><div class="stat-label">GPC signals</div></div>
+        <div class="stat"><div class="stat-val text-yellow">15%</div><div class="stat-label">Partial consent</div></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Consent ID</th><th>Client</th><th>Status</th><th>Source</th><th>GPC</th><th>Country</th><th>Page</th><th>Timestamp</th></tr></thead>
+          <tbody>
+            ${[
+              ['elyVzNpS2tNM…','ocusleep.com','Accepted','banner',false,'US','/checkout','May 1, 01:20'],
+              ['QnJFZGE2R3pa…','ocusleep.com','Accepted','banner',false,'US','/','May 1, 01:08'],
+              ['R2IZYWlKTlRL…','ocusleep.com','Rejected','banner',false,'US','/sleep-glasses','May 1, 01:06'],
+              ['S0djNmZOQXdz…','ocusleep.com','Accepted','preference_center',false,'US','/cart','May 1, 01:02'],
+              ['bE5MVnl5Yk81…','ocusleep.com','Rejected','gpc',true,'CA','/checkout','May 1, 00:59'],
+              ['RlRnV1A3SEtT…','ocusleep.com','Accepted','banner',false,'US','/',  'May 1, 00:51'],
+              ['cXAyRzBJQXVy…','ocusleep.com','Rejected','banner',false,'US','/product','May 1, 00:49'],
+            ].map(([id,client,status,src,gpc,country,page,ts])=>`<tr>
+              <td class="mono" style="font-size:11px;font-weight:400">${id}</td>
+              <td style="font-weight:400;color:var(--blue)">${client}</td>
+              <td><span class="badge ${status==='Accepted'?'b-green':status==='Rejected'?'b-red':'b-yellow'}">${status}</span></td>
+              <td class="mono" style="font-size:11px;color:var(--text3);font-weight:400">${src}</td>
+              <td>${gpc?'<span class="badge b-purple">Yes</span>':'<span class="badge b-gray">No</span>'}</td>
+              <td style="color:var(--text2);font-weight:400">${country}</td>
+              <td class="mono" style="font-size:11px;color:var(--text3);font-weight:400">${page}</td>
+              <td style="color:var(--text3);font-weight:400">${ts}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <div style="padding:10px 14px;font-size:11px;color:var(--text3);border-top:.5px solid var(--b)">Showing 7 of 1,368 · <a href="#">Export all</a></div>
+      </div>
+    </div>
+
+    <!-- ══ SCANNER RUNS ══ -->
+    <div class="tp" id="tp-scanner-runs">
+      <div class="ph"><div><div class="ph-title">Scanner Runs</div><div class="ph-sub">All scan jobs across all clients.</div></div>
+        <button class="btn btn-sm btn-blue" onclick="showToast('Scan queued for ocusleep.com.')">Trigger scan</button>
+      </div>
+      <div class="alert alert-red"><strong>2 critical pre-consent findings on ocusleep.com — Meta Pixel + Klaviyo not gated.</strong></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Run ID</th><th>Client</th><th>Triggered by</th><th>Status</th><th>Pages</th><th>Findings</th><th>Duration</th><th>Started</th><th></th></tr></thead>
+          <tbody>
+            ${[
+              ['run-a4f2…','ocusleep.com','scheduled','completed',47,'2 critical','4m 12s','Apr 29, 02:01'],
+              ['run-9c1e…','ocusleep.com','manual','completed',47,'2 critical','4m 08s','Apr 22, 14:30'],
+              ['run-b7d3…','39dollarglasses.com','scheduled','completed',12,'0','1m 44s','Apr 22, 02:01'],
+              ['run-3f8a…','ocusleep.com','scheduled','failed',0,'—','12s','Apr 15, 02:01'],
+            ].map(([id,client,trig,status,pages,findings,dur,ts])=>`<tr>
+              <td class="mono" style="font-size:11px;font-weight:400">${id}</td>
+              <td style="font-weight:400;color:var(--blue)">${client}</td>
+              <td class="mono" style="font-size:11px;color:var(--text3);font-weight:400">${trig}</td>
+              <td><span class="badge ${status==='completed'?'b-green':status==='running'?'b-blue':'b-red'}">${status}</span></td>
+              <td style="font-weight:400;color:var(--text2)">${pages}</td>
+              <td style="font-weight:400;${findings.includes('critical')?'color:var(--red)':'color:var(--text2)'}">${findings}</td>
+              <td style="font-weight:400;color:var(--text3)">${dur}</td>
+              <td style="font-weight:400;color:var(--text3)">${ts}</td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="showToast('Viewing run details.')">View</button></div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ SUPPORT TICKETS ══ -->
+    <div class="tp" id="tp-tickets">
+      <div class="ph"><div><div class="ph-title">Support Tickets</div><div class="ph-sub">Customer-reported issues and support requests.</div></div>
+        <div style="display:flex;gap:8px">
+          <div class="search-bar"><svg viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="3.5" stroke="currentColor" stroke-width="1.1"/><path d="M8.5 8.5l3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input placeholder="Search tickets..."/></div>
+          <button class="btn btn-sm btn-blue" onclick="openModal('modal-new-ticket')">+ New ticket</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Subject</th><th>Customer</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono" style="font-weight:400;color:var(--text3)">#1023</td>
+              <td>Banner not showing on mobile Safari</td>
+              <td style="font-weight:400;color:var(--text2)">marc@ocusleep.com</td>
+              <td><span class="badge b-red">High</span></td>
+              <td><span class="badge b-yellow">Open</span></td>
+              <td style="font-weight:400;color:var(--text2)">Unassigned</td>
+              <td style="font-weight:400;color:var(--text3)">Today, 2h ago</td>
+              <td><div class="actions"><button class="btn btn-xs btn-blue" onclick="openModal('modal-ticket-detail')">View</button><button class="btn btn-xs" onclick="showToast('Assigned to you.')">Assign me</button></div></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-weight:400;color:var(--text3)">#1022</td>
+              <td>GCM ad_storage shows 'granted' before consent</td>
+              <td style="font-weight:400;color:var(--text2)">marc@ocusleep.com</td>
+              <td><span class="badge b-yellow">Medium</span></td>
+              <td><span class="badge b-yellow">Open</span></td>
+              <td style="font-weight:400;color:var(--text2)">admin@noticeify.com</td>
+              <td style="font-weight:400;color:var(--text3)">Today, 5h ago</td>
+              <td><div class="actions"><button class="btn btn-xs btn-blue" onclick="openModal('modal-ticket-detail')">View</button><button class="btn btn-xs btn-green" onclick="showToast('Ticket resolved.')">Resolve</button></div></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-weight:400;color:var(--text3)">#1021</td>
+              <td>Consent log CSV export returns empty file</td>
+              <td style="font-weight:400;color:var(--text2)">marc@ocusleep.com</td>
+              <td><span class="badge b-gray">Low</span></td>
+              <td><span class="badge b-yellow">Open</span></td>
+              <td style="font-weight:400;color:var(--text2)">Unassigned</td>
+              <td style="font-weight:400;color:var(--text3)">Yesterday</td>
+              <td><div class="actions"><button class="btn btn-xs btn-blue" onclick="openModal('modal-ticket-detail')">View</button><button class="btn btn-xs" onclick="showToast('Assigned to you.')">Assign me</button></div></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-weight:400;color:var(--text3)">#1020</td>
+              <td>How to add "Your Privacy Choices" to footer</td>
+              <td style="font-weight:400;color:var(--text2)">marc@39dollarglasses.com</td>
+              <td><span class="badge b-gray">Low</span></td>
+              <td><span class="badge b-green">Resolved</span></td>
+              <td style="font-weight:400;color:var(--text2)">support@noticeify.com</td>
+              <td style="font-weight:400;color:var(--text3)">Apr 30</td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="openModal('modal-ticket-detail')">View</button><button class="btn btn-xs" onclick="showToast('Ticket reopened.')">Reopen</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ IMPERSONATE ══ -->
+    <div class="tp" id="tp-impersonate">
+      <div class="ph"><div><div class="ph-title">Impersonate Customer</div><div class="ph-sub">Access a customer's dashboard as them. All actions are logged.</div></div></div>
+      <div class="alert alert-yellow"><strong>⚠ Impersonation is fully audited. Every action taken while impersonating is logged with your admin email as the actor.</strong></div>
+      <div style="max-width:520px">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Select account to impersonate</div>
+          <div class="form-group"><label class="form-label">Customer email or domain</label>
+            <select class="form-input form-select">
+              <option>marc@ocusleep.com — ocusleep.com</option>
+              <option>marc@39dollarglasses.com — 39dollarglasses.com</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Reason for impersonation (required for audit)</label>
+            <input class="form-input" placeholder="e.g. Investigating support ticket #1022"/>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-yellow" style="background:var(--yellow);color:#000;border-color:var(--yellow)" onclick="showToast('Impersonation session started. Opening customer dashboard...')">Start impersonation session</button>
+            <button class="btn btn-sm">Cancel</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recent impersonation sessions</div>
+          <table class="tbl">
+            <thead><tr><th>Admin</th><th>Customer</th><th>Reason</th><th>Duration</th><th>Time</th></tr></thead>
+            <tbody>
+              <tr><td>admin@noticeify.com</td><td style="font-weight:400;color:var(--text2)">marc@ocusleep.com</td><td style="font-weight:400;color:var(--text2)">Debug GCM issue</td><td style="font-weight:400;color:var(--text3)">8m</td><td style="font-weight:400;color:var(--text3)">Today, 2h ago</td></tr>
+              <tr><td>support@noticeify.com</td><td style="font-weight:400;color:var(--text2)">marc@ocusleep.com</td><td style="font-weight:400;color:var(--text2)">Verify CSV export</td><td style="font-weight:400;color:var(--text3)">3m</td><td style="font-weight:400;color:var(--text3)">Apr 30</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AUDIT TRAIL ══ -->
+    <div class="tp" id="tp-audit">
+      <div class="ph"><div><div class="ph-title">Audit Trail</div><div class="ph-sub">Compliance-grade record of all data access and modifications.</div></div>
+        <button class="btn btn-sm" onclick="showToast('Audit export emailed.')">Export PDF report</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <div class="stat"><div class="stat-val">847</div><div class="stat-label">Total audit events (30d)</div></div>
+        <div class="stat"><div class="stat-val text-yellow">2</div><div class="stat-label">Impersonation sessions</div></div>
+        <div class="stat"><div class="stat-val text-red">0</div><div class="stat-label">Unauthorized access attempts</div></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Event</th><th>Actor</th><th>Resource</th><th>Data accessed</th><th>IP</th><th>Timestamp</th></tr></thead>
+          <tbody>
+            ${[
+              ['Consent log exported','admin@noticeify.com','ocusleep.com','1,368 rows','192.168.1.1','May 1, 01:42'],
+              ['Customer record viewed','support@noticeify.com','marc@ocusleep.com','Profile + billing','10.0.0.2','May 1, 01:38'],
+              ['API key revealed','admin@noticeify.com','nfy_ocusleep_prod','Key prefix only','192.168.1.1','Apr 30, 22:10'],
+              ['Impersonation started','admin@noticeify.com','marc@ocusleep.com','Full dashboard','192.168.1.1','Apr 30, 14:22'],
+              ['Client config modified','admin@noticeify.com','ocusleep.com','healthcare_adjacent=true','192.168.1.1','Apr 30, 11:05'],
+            ].map(([ev,actor,res,data,ip,ts])=>`<tr>
+              <td>${ev}</td>
+              <td style="font-weight:400;color:var(--text2)">${actor}</td>
+              <td style="font-weight:400;color:var(--blue)">${res}</td>
+              <td style="font-weight:400;color:var(--text2)">${data}</td>
+              <td class="mono" style="font-size:11px;color:var(--text3);font-weight:400">${ip}</td>
+              <td style="font-weight:400;color:var(--text3)">${ts}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ BILLING ADMIN ══ -->
+    <div class="tp" id="tp-billing-admin">
+      <div class="ph"><div><div class="ph-title">Subscriptions</div><div class="ph-sub">Manage customer plans, overrides, and billing status.</div></div></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Account</th><th>Plan</th><th>MRR</th><th>Status</th><th>Next billing</th><th>Payment</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td>marc@ocusleep.com</td>
+              <td><span class="badge b-gray">Starter (Free)</span></td>
+              <td style="font-weight:400;color:var(--text3)">$0</td>
+              <td><span class="badge b-green">Active</span></td>
+              <td style="font-weight:400;color:var(--text3)">—</td>
+              <td style="font-weight:400;color:var(--text3)">None</td>
+              <td><div class="actions"><button class="btn btn-xs btn-blue" onclick="showToast('Plan override applied.')">Override plan</button><button class="btn btn-xs" onclick="showToast('Free trial extended.')">Extend trial</button></div></td>
+            </tr>
+            <tr>
+              <td>marc@39dollarglasses.com</td>
+              <td><span class="badge b-gray">Starter (Free)</span></td>
+              <td style="font-weight:400;color:var(--text3)">$0</td>
+              <td><span class="badge b-yellow">Inactive</span></td>
+              <td style="font-weight:400;color:var(--text3)">—</td>
+              <td style="font-weight:400;color:var(--text3)">None</td>
+              <td><div class="actions"><button class="btn btn-xs btn-blue" onclick="showToast('Plan override applied.')">Override plan</button><button class="btn btn-xs" onclick="showToast('Account reactivated.')">Reactivate</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ REVENUE ══ -->
+    <div class="tp" id="tp-revenue">
+      <div class="ph"><div><div class="ph-title">Revenue</div><div class="ph-sub">MRR, ARR, and growth metrics.</div></div></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val text-green">$0</div><div class="stat-label">MRR</div><div class="stat-delta neu">Pre-revenue</div></div>
+        <div class="stat"><div class="stat-val">2</div><div class="stat-label">Paying customers</div><div class="stat-delta neu">0 paying</div></div>
+        <div class="stat"><div class="stat-val">$49</div><div class="stat-label">Target MRR per account</div><div class="stat-delta neu">Business plan</div></div>
+        <div class="stat"><div class="stat-val text-blue">$98</div><div class="stat-label">Potential MRR</div><div class="stat-delta neu">If both upgrade</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Revenue pipeline — conversion actions needed</div>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-content"><div class="tl-title">ocusleep.com → Business ($49/mo)</div><div class="tl-meta">Needs: scanner alerts, geo-targeting, healthcare mode. 2 critical scanner findings may trigger upgrade.</div></div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--text3)"></div><div class="tl-content"><div class="tl-title">39dollarglasses.com → CookieYes replacement</div><div class="tl-meta">Currently using CookieYes. Opportunity: present side-by-side comparison showing data ownership advantage.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ API ADMIN ══ -->
+    <div class="tp" id="tp-api-admin">
+      <div class="ph"><div><div class="ph-title">API Keys (Admin)</div><div class="ph-sub">All API keys across all clients. Full create/revoke access.</div></div>
+        <button class="btn btn-sm btn-blue" onclick="openModal('modal-new-key')">+ Create key</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Key name</th><th>Client</th><th>Prefix</th><th>Scopes</th><th>Last used</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${[
+              ['ocusleep-production','ocusleep.com','nfy_sk_••a75d','consent:write, logs:read','Today','Never','Active'],
+              ['github-actions-scanner','ocusleep.com','nfy_sk_••b2d0','scanner:run, scanner:read','2d ago','Never','Active'],
+              ['39dg-production','39dollarglasses.com','nfy_sk_••c1e9','consent:write, logs:read','Apr 15','Never','Active'],
+            ].map(([name,client,prefix,scopes,used,exp,status])=>`<tr>
+              <td>${name}</td>
+              <td style="font-weight:400;color:var(--blue)">${client}</td>
+              <td class="mono" style="font-size:11px;font-weight:400">${prefix}</td>
+              <td style="font-weight:400;color:var(--text3);font-size:11px">${scopes}</td>
+              <td style="font-weight:400;color:var(--text2)">${used}</td>
+              <td style="font-weight:400;color:var(--text3)">${exp}</td>
+              <td><span class="badge b-green">${status}</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="showToast('Key copied.')">Copy</button><button class="btn btn-xs" style="color:var(--red)" onclick="showToast('Key revoked.')">Revoke</button></div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ SYSTEM HEALTH ══ -->
+    <div class="tp" id="tp-health">
+      <div class="ph"><div><div class="ph-title">System Health</div><div class="ph-sub">Live infrastructure and service status.</div></div>
+        <button class="btn btn-sm" onclick="showToast('Health check refreshed.')">Refresh</button>
+      </div>
+      <div class="alert alert-green"><strong>All systems operational.</strong> Last checked: just now</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card">
+          <div class="card-title">Services</div>
+          ${[
+            ['Vercel API','https://noticeify-w39k.vercel.app','Operational','b-green'],
+            ['Cloudflare Pages','https://noticeify.pages.dev','Operational','b-green'],
+            ['Supabase DB','ktpdsscktdxexsadlnqh','Operational','b-green'],
+            ['GitHub Actions Scanner','ballman1/noticeify','Operational','b-green'],
+            ['/health endpoint','GET /health','200 OK','b-green'],
+            ['/metrics endpoint','GET /metrics (auth gated)','200 OK','b-green'],
+          ].map(([name,url,status,badge])=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--b)">
+            <div style="width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:500">${name}</div><div class="mono" style="color:var(--text3);font-size:10px">${url}</div></div>
+            <span class="badge ${badge}">${status}</span>
+          </div>`).join('')}
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-title">Scanner worker metrics</div>
+            ${[['Claims total','0'],['Completed total','0'],['Failed total','0'],['Worker started','true'],['Processing now','false'],['Geo circuit open','false']].map(([k,v])=>`
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--b);font-size:12px">
+              <span class="mono" style="color:var(--text2);font-size:11px">${k}</span>
+              <span style="font-weight:500;color:${v==='true'?'var(--green)':v==='false'?'var(--text3)':'var(--text)'}">${v}</span>
+            </div>`).join('')}
+          </div>
+          <div class="card">
+            <div class="card-title">Database</div>
+            ${[['Connection pool','Active'],['Supabase pooler','Connected'],['SSL','rejectUnauthorized: false'],['Migration version','004']].map(([k,v])=>`
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--b);font-size:12px">
+              <span style="color:var(--text2)">${k}</span>
+              <span style="font-weight:500">${v}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CONFIG ══ -->
+    <div class="tp" id="tp-config">
+      <div class="ph"><div><div class="ph-title">Platform Configuration</div><div class="ph-sub">Global feature flags, environment settings, and defaults.</div></div>
+        <button class="btn btn-sm btn-blue" onclick="showToast('Configuration saved.')">Save changes</button>
+      </div>
+      <div style="max-width:600px;display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title">Feature flags</div>
+          ${[
+            ['Geo lookup (ipapi.co)','Real IP geolocation on consent ingestion',true],
+            ['IP hash salt enforcement','Require IP_HASH_SALT in production',true],
+            ['Scanner worker','Background scanner job processing',true],
+            ['/metrics auth gating','Require METRICS_TOKEN for Prometheus endpoint',true],
+            ['GPC auto-denial','Auto-deny marketing on GPC signal',true],
+            ['Healthcare-adjacent mode','Stricter pixel controls on health pages',true],
+          ].map(([name,desc,on])=>`
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:.5px solid var(--b)">
+            <div><div style="font-size:12px;font-weight:500;margin-bottom:2px">${name}</div><div style="font-size:11px;color:var(--text2)">${desc}</div></div>
+            <label class="tog" style="margin-top:2px"><input type="checkbox" ${on?'checked':''}><div class="tt"></div><div class="th"></div></label>
+          </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-title">Environment variables (read-only)</div>
+          ${[
+            ['NODE_ENV','production'],
+            ['GEOIP_ENDPOINT','https://ipapi.co'],
+            ['GEO_LOOKUP_TIMEOUT_MS','3000'],
+            ['GEO_LOOKUP_FAILURE_THRESHOLD','3'],
+            ['GEO_LOOKUP_COOLDOWN_MS','60000'],
+            ['SCANNER_POLL_MS','5000'],
+            ['SCANNER_STALE_RUNNING_MINUTES','30'],
+            ['WORKER_SHUTDOWN_TIMEOUT_MS','10000'],
+            ['METRICS_TOKEN','nfy_mt_••••••••'],
+            ['DATABASE_URL','postgresql://postgres.ktpds…'],
+          ].map(([k,v])=>`
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--b);font-size:12px">
+            <span class="mono" style="font-size:11px;color:var(--text2)">${k}</span>
+            <span class="mono" style="font-size:11px;color:var(--text3)">${v}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STAFF ══ -->
+    <div class="tp" id="tp-staff">
+      <div class="ph"><div><div class="ph-title">Staff Accounts</div><div class="ph-sub">Admin portal users and support personnel.</div></div>
+        <button class="btn btn-sm btn-blue" onclick="openModal('modal-new-staff')">+ Add staff</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last login</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Marc Ballman</td>
+              <td style="font-weight:400;color:var(--text2)">admin@noticeify.com</td>
+              <td><span class="badge b-red">Owner / Admin</span></td>
+              <td style="font-weight:400;color:var(--text3)">Just now</td>
+              <td><span class="badge b-green">Active</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="openModal('modal-edit-staff')">Edit</button></div></td>
+            </tr>
+            <tr>
+              <td>Support Agent</td>
+              <td style="font-weight:400;color:var(--text2)">support@noticeify.com</td>
+              <td><span class="badge b-yellow">Support</span></td>
+              <td style="font-weight:400;color:var(--text3)">Apr 30, 2026</td>
+              <td><span class="badge b-green">Active</span></td>
+              <td><div class="actions"><button class="btn btn-xs" onclick="openModal('modal-edit-staff')">Edit</button><button class="btn btn-xs" style="color:var(--red)" onclick="showToast('Staff account suspended.')">Suspend</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+<div class="modal-bg" id="modal-ticket-detail">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Ticket #1023 — Banner not showing on mobile Safari</span><button class="modal-close" onclick="closeModal('modal-ticket-detail')">×</button></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">CUSTOMER</div><div style="font-size:12px">marc@ocusleep.com</div></div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">STATUS</div><span class="badge b-yellow">Open</span></div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">PRIORITY</div><span class="badge b-red">High</span></div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">CREATED</div><div style="font-size:12px">May 1, 2026 — 2h ago</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">CUSTOMER MESSAGE</div>
+      <div style="background:var(--bg3);border-radius:var(--r);padding:12px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:16px">
+        The cookie consent banner is not appearing on mobile Safari on iOS 17. Desktop and other mobile browsers work fine. I've confirmed the script tag is in theme.liquid before the GTM snippet. Our California customers are likely not seeing the banner at all.
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">INTERNAL NOTES</div>
+      <textarea class="form-input" style="min-height:80px;resize:vertical" placeholder="Add internal note..."></textarea>
+      <div class="form-row" style="margin-top:12px">
+        <div><label class="form-label">Assign to</label>
+          <select class="form-input form-select"><option>Unassigned</option><option selected>admin@noticeify.com</option><option>support@noticeify.com</option></select>
+        </div>
+        <div><label class="form-label">Status</label>
+          <select class="form-input form-select"><option selected>Open</option><option>In progress</option><option>Resolved</option><option>Closed</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal('modal-ticket-detail')">Cancel</button>
+      <button class="btn btn-sm btn-blue" onclick="showToast('Ticket updated.');closeModal('modal-ticket-detail')">Save &amp; update</button>
+      <button class="btn btn-sm btn-green" onclick="showToast('Ticket resolved.');closeModal('modal-ticket-detail')">Mark resolved</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-new-customer">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Create new account</span><button class="modal-close" onclick="closeModal('modal-new-customer')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" placeholder="First name"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" placeholder="Last name"/></div></div>
+      <div class="form-group"><label class="form-label">Email address</label><input class="form-input" type="email" placeholder="customer@company.com"/></div>
+      <div class="form-group"><label class="form-label">Primary domain</label><input class="form-input" placeholder="https://example.com"/></div>
+      <div class="form-group"><label class="form-label">Plan</label><select class="form-input form-select"><option>Starter (Free)</option><option>Business ($49/mo)</option><option>Agency ($149/mo)</option></select></div>
+      <div class="form-group"><label class="form-label">Send welcome email</label><label class="tog"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-new-customer')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('Account created.');closeModal('modal-new-customer')">Create account</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-edit-customer">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Edit account — marc@ocusleep.com</span><button class="modal-close" onclick="closeModal('modal-edit-customer')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" value="Marc"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" value="Ballman"/></div></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" value="marc@ocusleep.com"/></div>
+      <div class="form-group"><label class="form-label">Plan override</label><select class="form-input form-select"><option selected>Starter (Free)</option><option>Business ($49/mo)</option><option>Agency ($149/mo)</option><option>Custom</option></select></div>
+      <div class="form-group"><label class="form-label">Account status</label><select class="form-input form-select"><option selected>Active</option><option>Suspended</option><option>Deleted</option></select></div>
+      <div class="form-group"><label class="form-label">Admin note</label><textarea class="form-input" style="min-height:60px" placeholder="Internal notes about this account..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-edit-customer')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('Account updated.');closeModal('modal-edit-customer')">Save changes</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-edit-client">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Edit client — ocusleep.com</span><button class="modal-close" onclick="closeModal('modal-edit-client')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Domain</label><input class="form-input" value="ocusleep.com"/></div>
+      <div class="form-group"><label class="form-label">Client key</label><input class="form-input mono" value="nfy_ocusleep_prod" readonly/><div class="form-hint">Client key cannot be changed after creation.</div></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Jurisdiction</label><select class="form-input form-select"><option>US (CCPA)</option><option>US + GDPR</option><option>GDPR only</option><option>Worldwide</option></select></div>
+        <div class="form-group"><label class="form-label">Consent log retention</label><select class="form-input form-select"><option>365 days</option><option>730 days</option><option>Indefinitely</option></select></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${[['GCM enabled','gcm_enabled',true],['GPC detection','gpc_enabled',true],['Healthcare-adjacent mode','healthcare_adjacent',true]].map(([label,key,val])=>`
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px">${label}</span>
+          <label class="tog"><input type="checkbox" ${val?'checked':''}><div class="tt"></div><div class="th"></div></label>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('Client updated.');closeModal('modal-edit-client')">Save changes</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-new-client">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Add new client</span><button class="modal-close" onclick="closeModal('modal-new-client')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Domain</label><input class="form-input" placeholder="yourstore.com"/></div>
+      <div class="form-group"><label class="form-label">Client key</label><input class="form-input mono" placeholder="nfy_yourstore_prod"/><div class="form-hint">Must be unique. Used as data-client-id in the embed tag.</div></div>
+      <div class="form-group"><label class="form-label">Account owner</label><select class="form-input form-select"><option>marc@ocusleep.com</option><option>marc@39dollarglasses.com</option><option>Create new account</option></select></div>
+      <div class="form-group"><label class="form-label">Jurisdiction</label><select class="form-input form-select"><option>US (CCPA)</option><option>US + GDPR</option><option>GDPR only</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-new-client')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('Client created. API key generated.');closeModal('modal-new-client')">Create client</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-new-key">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Create API key</span><button class="modal-close" onclick="closeModal('modal-new-key')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Key name</label><input class="form-input" placeholder="e.g. github-actions-scanner"/></div>
+      <div class="form-group"><label class="form-label">Client</label><select class="form-input form-select"><option>ocusleep.com</option><option>39dollarglasses.com</option></select></div>
+      <div class="form-group"><label class="form-label">Scopes</label>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:4px">
+          ${['consent:write','consent:read','logs:read','logs:export','scanner:run','scanner:read','admin'].map(s=>`
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+            <input type="checkbox" ${['consent:write','consent:read','logs:read'].includes(s)?'checked':''}/>
+            <span class="mono" style="font-size:11px">${s}</span>
+          </label>`).join('')}
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Expires</label><select class="form-input form-select"><option>Never</option><option>90 days</option><option>1 year</option><option>Custom</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-new-key')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('API key created. Copy it now — it will not be shown again.');closeModal('modal-new-key')">Generate key</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-new-staff">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Add staff account</span><button class="modal-close" onclick="closeModal('modal-new-staff')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">First name</label><input class="form-input" placeholder="First name"/></div><div class="form-group"><label class="form-label">Last name</label><input class="form-input" placeholder="Last name"/></div></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="staff@noticeify.com"/></div>
+      <div class="form-group"><label class="form-label">Role</label>
+        <select class="form-input form-select">
+          <option>Support — view customers, manage tickets, impersonate (logged)</option>
+          <option>Developer — API admin, system health, config</option>
+          <option>Admin — full access</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Send invite email</label><label class="tog"><input type="checkbox" checked><div class="tt"></div><div class="th"></div></label></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-new-staff')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('Staff invite sent.');closeModal('modal-new-staff')">Send invite</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-new-ticket">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title">Create support ticket</span><button class="modal-close" onclick="closeModal('modal-new-ticket')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Customer</label><select class="form-input form-select"><option>marc@ocusleep.com</option><option>marc@39dollarglasses.com</option></select></div>
+      <div class="form-group"><label class="form-label">Subject</label><input class="form-input" placeholder="Brief description of the issue"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Priority</label><select class="form-input form-select"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div>
+        <div class="form-group"><label class="form-label">Assign to</label><select class="form-input form-select"><option>Unassigned</option><option>admin@noticeify.com</option><option>support@noticeify.com</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" style="min-height:100px;resize:vertical" placeholder="Detailed description..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal('modal-new-ticket')">Cancel</button><button class="btn btn-sm btn-blue" onclick="showToast('Ticket created.');closeModal('modal-new-ticket')">Create ticket</button></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#fff;color:#111;font-size:12px;padding:9px 18px;border-radius:8px;z-index:9999;pointer-events:none;transition:opacity .25s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);opacity:0"></div>
+
+<script>
+// ── Auth gate ─────────────────────────────────────────────────────────────
+const ADMIN_CREDS = { 'admin@noticeify.com': 'admin123', 'support@noticeify.com': 'support123' };
+
+function gateLogin() {
+  const email = document.getElementById('gate-email').value.trim();
+  const pw    = document.getElementById('gate-pw').value;
+  const err   = document.getElementById('gate-err');
+  if (ADMIN_CREDS[email] && ADMIN_CREDS[email] === pw) {
+    sessionStorage.setItem('nfy_admin', email);
+    document.getElementById('gate').style.display = 'none';
+    initAdmin(email);
+  } else {
+    err.style.display = 'block';
+    setTimeout(() => err.style.display = 'none', 3000);
+  }
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('nfy_admin');
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('gate-email').value = '';
+  document.getElementById('gate-pw').value = '';
+}
+
+function initAdmin(email) {
+  document.getElementById('admin-email-label').textContent = email.split('@')[0];
+  document.getElementById('admin-avatar').textContent = email.charAt(0).toUpperCase();
+  const isSupport = email.includes('support');
+  if (isSupport) {
+    // Restrict support role from config and revenue tabs
+    document.getElementById('admin-env-label').textContent = 'Production — Support View';
+  }
+}
+
+// Auto-login if session exists
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('nfy_admin');
+  if (saved) { document.getElementById('gate').style.display = 'none'; initAdmin(saved); }
+  // Clock
+  setInterval(() => {
+    document.getElementById('admin-time').textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }, 1000);
+  document.getElementById('gate-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('gate-pw').focus(); });
+});
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function tab(id, btn) {
+  document.querySelectorAll('.tp').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.sbi').forEach(b => b.classList.remove('on'));
+  const panel = document.getElementById('tp-' + id);
+  if (panel) panel.classList.add('on');
+  if (btn) btn.classList.add('on');
+  else {
+    const match = document.querySelector(`.sbi[onclick*="'${id}'"]`);
+    if (match) match.classList.add('on');
+  }
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('on'); }
+function closeModal(id) { document.getElementById(id).classList.remove('on'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-bg')) e.target.classList.remove('on');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.on').forEach(m => m.classList.remove('on'));
+});
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.opacity = '0', 2800);
+}
+</script>
+</body>
+</html>
