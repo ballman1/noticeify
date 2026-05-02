@@ -333,11 +333,29 @@ hr{border:none;border-top:.5px solid var(--b)}
 
 <!-- ═══ APP DASHBOARD ═══ -->
 <div id="pg-app" class="pg">
+  <!-- App inner topbar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:46px;background:var(--bg);border-bottom:.5px solid var(--b);position:sticky;top:50px;z-index:200">
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="/noticeify-logo.png" style="height:22px;width:auto" alt="Noticeify"/>
+      <div style="width:.5px;height:18px;background:var(--b)"></div>
+      <span id="app-site-label" style="font-size:12px;font-weight:500;color:var(--text2)">ocusleep.com</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="app-user-pill" style="display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:20px;background:var(--bg2);border:.5px solid var(--b);font-size:11px;color:var(--text2)">
+        <div id="app-avatar" style="width:20px;height:20px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff">?</div>
+        <span id="app-user-email" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Account</span>
+      </div>
+      <button onclick="appTab('account-profile',null)" class="btn btn-sm" style="font-size:11px">Settings</button>
+      <button onclick="handleSignout()" class="btn btn-sm" style="font-size:11px;color:var(--danger);border-color:var(--danger)">Sign out</button>
+    </div>
+  </div>
   <div class="app">
     <div class="sb">
       <div style="padding:9px 13px 8px;border-bottom:.5px solid var(--b);margin-bottom:7px">
-        <select style="width:100%;font-size:11px;padding:4px 8px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);color:var(--text);font-family:var(--f)">
-          <option>ocusleep.com</option><option>39dollarglasses.com</option><option>+ Add website</option>
+        <select id="site-switcher" onchange="switchSite(this.value)" style="width:100%;font-size:11px;padding:4px 8px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);color:var(--text);font-family:var(--f)">
+          <option value="ocusleep.com">ocusleep.com</option>
+          <option value="39dollarglasses.com">39dollarglasses.com</option>
+          <option value="add">+ Add website</option>
         </select>
       </div>
       <div class="sb-sec">
@@ -363,6 +381,14 @@ hr{border:none;border-top:.5px solid var(--b)}
         <button class="sbi" onclick="appTab('gcm',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M1.5 10l3-4 2.5 2.5 2-3.5 2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>Consent Mode</button>
         <button class="sbi" onclick="appTab('advanced',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="2" stroke="currentColor" stroke-width="1.1"/><path d="M6.5 1v2M6.5 10v2M1 6.5h2M10 6.5h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Advanced</button>
         <button class="sbi" onclick="appTab('install',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v7M4 6.5l2.5 2.5L9 6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 10.5h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Installation</button>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-lbl">Account</div>
+        <button class="sbi" onclick="appTab('account-profile',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M2 11.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Profile</button>
+        <button class="sbi" onclick="appTab('account-websites',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.1"/><ellipse cx="6.5" cy="6.5" rx="2" ry="4.5" stroke="currentColor" stroke-width="1.1"/></svg>Websites</button>
+        <button class="sbi" onclick="appTab('account-team',this)"><svg viewBox="0 0 13 13" fill="none"><circle cx="4.5" cy="5" r="2" stroke="currentColor" stroke-width="1.1"/><circle cx="9" cy="5" r="2" stroke="currentColor" stroke-width="1.1"/><path d="M1 11.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M9 8.5c1.5 0 2.5.8 2.5 2.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Team</button>
+        <button class="sbi" onclick="appTab('account-billing',this)"><svg viewBox="0 0 13 13" fill="none"><rect x="1.5" y="3" width="10" height="7" rx="1.2" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 5.5h10" stroke="currentColor" stroke-width="1.1"/><path d="M4 8h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>Billing</button>
+        <button class="sbi" onclick="appTab('account-api',this)"><svg viewBox="0 0 13 13" fill="none"><path d="M3 6.5h7M8 4l2.5 2.5L8 9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 4L2.5 6.5 5 9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>API Keys</button>
       </div>
     </div>
     <div class="am">
@@ -568,9 +594,221 @@ hr{border:none;border-top:.5px solid var(--b)}
         </div>
       </div>
 
+
+      <!-- ACCOUNT — PROFILE -->
+      <div class="tp" id="at-account-profile">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div><h2 style="font-size:15px;font-weight:600;margin-bottom:2px">Profile</h2><p style="font-size:11px;color:var(--text3)">Manage your personal account details.</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:660px">
+          <div class="card" style="grid-column:1/-1">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:18px;border-bottom:.5px solid var(--b)">
+              <div id="profile-avatar-lg" style="width:56px;height:56px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;color:#fff;flex-shrink:0">?</div>
+              <div>
+                <div id="profile-email-display" style="font-size:14px;font-weight:500;margin-bottom:3px">your@email.com</div>
+                <div style="font-size:11px;color:var(--text3)">Free plan · Member since May 2026</div>
+              </div>
+              <button class="btn btn-sm" style="margin-left:auto">Change photo</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label style="font-size:11px;font-weight:500;display:block;margin-bottom:4px">First name</label>
+                <input id="profile-first" value="" placeholder="First name" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:500;display:block;margin-bottom:4px">Last name</label>
+                <input value="" placeholder="Last name" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:500;display:block;margin-bottom:4px">Email address</label>
+                <input id="profile-email-input" type="email" value="" placeholder="you@company.com" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:500;display:block;margin-bottom:4px">Company</label>
+                <input value="" placeholder="Your company" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="btn btn-g btn-sm" onclick="showToast('Profile saved successfully.')">Save changes</button>
+              <button class="btn btn-sm">Cancel</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:12px">Change password</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div><label style="font-size:11px;font-weight:500;display:block;margin-bottom:3px">Current password</label><input type="password" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/></div>
+              <div><label style="font-size:11px;font-weight:500;display:block;margin-bottom:3px">New password</label><input type="password" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/></div>
+              <div><label style="font-size:11px;font-weight:500;display:block;margin-bottom:3px">Confirm new password</label><input type="password" style="width:100%;font-size:12px;padding:6px 10px;border-radius:var(--r);border:.5px solid var(--b2);background:var(--bg);font-family:var(--f)"/></div>
+              <button class="btn btn-g btn-sm" style="align-self:flex-start" onclick="showToast('Password updated.')">Update password</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:var(--danger)">Danger zone</div>
+            <p style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.5">Permanently delete your account and all associated data. This cannot be undone.</p>
+            <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger)" onclick="showToast('Please contact support to delete your account.')">Delete account</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT — WEBSITES -->
+      <div class="tp" id="at-account-websites">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div><h2 style="font-size:15px;font-weight:600;margin-bottom:2px">Websites</h2><p style="font-size:11px;color:var(--text3)">Manage the websites connected to your account.</p></div>
+          <button class="btn btn-g btn-sm" onclick="showToast('Upgrade to add more websites.')">+ Add website</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:660px">
+          <div class="card" style="display:flex;align-items:center;gap:14px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--gl);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="var(--green)" stroke-width="1.3"/><path d="M8 2v12M2 8h12" stroke="var(--green)" stroke-width="1.3"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px">ocusleep.com</div>
+              <div style="font-size:11px;color:var(--text3)">Client ID: nfy_ocusleep_prod · Added May 1, 2026</div>
+            </div>
+            <span class="badge bg">Active</span>
+            <button class="btn btn-sm" onclick="appTab('install',null)">Install code</button>
+            <button class="btn btn-sm" onclick="appTab('advanced',null)">Settings</button>
+          </div>
+          <div class="card" style="display:flex;align-items:center;gap:14px;opacity:.7">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="var(--text3)" stroke-width="1.3"/><path d="M8 2v12M2 8h12" stroke="var(--text3)" stroke-width="1.3"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px">39dollarglasses.com</div>
+              <div style="font-size:11px;color:var(--text3)">Client ID: nfy_39dg_prod · Added Apr 15, 2026</div>
+            </div>
+            <span class="badge bgr">Inactive</span>
+            <button class="btn btn-sm">Activate</button>
+            <button class="btn btn-sm" onclick="appTab('advanced',null)">Settings</button>
+          </div>
+          <div class="card" style="display:flex;align-items:center;gap:14px;border-style:dashed;background:none;cursor:pointer" onclick="showToast('Upgrade to Business to add more websites.')">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text3)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 4v8M4 8h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div><div style="font-size:12px;font-weight:500;color:var(--text2)">Add another website</div><div style="font-size:11px;color:var(--text3)">Requires Business plan ($49/mo)</div></div>
+            <button class="btn btn-sm btn-g" style="margin-left:auto" onclick="appTab('account-billing',null)">Upgrade</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT — TEAM -->
+      <div class="tp" id="at-account-team">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div><h2 style="font-size:15px;font-weight:600;margin-bottom:2px">Team</h2><p style="font-size:11px;color:var(--text3)">Invite teammates to access your Noticeify account.</p></div>
+          <button class="btn btn-g btn-sm" onclick="showToast('Upgrade to Business plan to invite team members.')">Invite member</button>
+        </div>
+        <div style="max-width:600px">
+          <div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">
+            <div style="padding:10px 14px;border-bottom:.5px solid var(--b);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)">Members</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:.5px solid var(--b)">
+              <div id="team-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0">?</div>
+              <div style="flex:1"><div id="team-email-display" style="font-size:12px;font-weight:500">your@email.com</div><div style="font-size:11px;color:var(--text3)">Owner · Joined May 2026</div></div>
+              <span class="badge bg">Owner</span>
+            </div>
+            <div style="padding:24px 14px;text-align:center">
+              <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Invite your team to collaborate on consent management.</div>
+              <button class="btn btn-sm" onclick="appTab('account-billing',null)">Upgrade to add team members</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:10px">Roles &amp; permissions</div>
+            <table class="tbl"><thead><tr><th>Role</th><th>Dashboard</th><th>Settings</th><th>Billing</th><th>API Keys</th></tr></thead>
+            <tbody>
+              <tr><td>Owner</td><td><span class="badge bg">Full</span></td><td><span class="badge bg">Full</span></td><td><span class="badge bg">Full</span></td><td><span class="badge bg">Full</span></td></tr>
+              <tr><td>Admin</td><td><span class="badge bg">Full</span></td><td><span class="badge bg">Full</span></td><td><span class="badge bgr">View</span></td><td><span class="badge bg">Full</span></td></tr>
+              <tr><td>Analyst</td><td><span class="badge bg">Full</span></td><td><span class="badge bgr">None</span></td><td><span class="badge bgr">None</span></td><td><span class="badge bgr">None</span></td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT — BILLING -->
+      <div class="tp" id="at-account-billing">
+        <div style="margin-bottom:18px"><h2 style="font-size:15px;font-weight:600;margin-bottom:2px">Billing</h2><p style="font-size:11px;color:var(--text3)">Manage your plan and payment details.</p></div>
+        <div style="max-width:660px;display:flex;flex-direction:column;gap:12px">
+          <!-- Current plan -->
+          <div class="card" style="display:flex;align-items:center;gap:14px">
+            <div style="flex:1">
+              <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:4px">Current plan</div>
+              <div style="font-size:18px;font-weight:600;margin-bottom:3px">Starter <span style="font-size:13px;font-weight:400;color:var(--text2)">— Free</span></div>
+              <div style="font-size:11px;color:var(--text2)">1 website · Consent logging · GPC detection · Google Consent Mode v2</div>
+            </div>
+            <button class="btn btn-g btn-sm" onclick="showToast('Upgrade flow coming soon.')">Upgrade to Business $49/mo</button>
+          </div>
+          <!-- Usage -->
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:12px">Usage this month</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+              <div style="background:var(--bg2);border-radius:var(--r);padding:11px 13px"><div style="font-size:18px;font-weight:600;margin-bottom:2px">1,368</div><div style="font-size:11px;color:var(--text2)">Consent events</div></div>
+              <div style="background:var(--bg2);border-radius:var(--r);padding:11px 13px"><div style="font-size:18px;font-weight:600;margin-bottom:2px">118k</div><div style="font-size:11px;color:var(--text2)">Pageviews tracked</div></div>
+              <div style="background:var(--bg2);border-radius:var(--r);padding:11px 13px"><div style="font-size:18px;font-weight:600;margin-bottom:2px">1 / 1</div><div style="font-size:11px;color:var(--text2)">Websites used</div></div>
+            </div>
+          </div>
+          <!-- Plan comparison -->
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:12px">Compare plans</div>
+            <table class="tbl">
+              <thead><tr><th>Feature</th><th>Starter (current)</th><th>Business $49/mo</th><th>Agency $149/mo</th></tr></thead>
+              <tbody>
+                <tr><td>Websites</td><td>1</td><td>5</td><td>Unlimited</td></tr>
+                <tr><td>Weekly scanner</td><td><span class="badge bgr">No</span></td><td><span class="badge bg">Yes</span></td><td><span class="badge bg">Yes</span></td></tr>
+                <tr><td>CSV / PDF export</td><td><span class="badge bgr">No</span></td><td><span class="badge bg">Yes</span></td><td><span class="badge bg">Yes</span></td></tr>
+                <tr><td>Slack alerts</td><td><span class="badge bgr">No</span></td><td><span class="badge bg">Yes</span></td><td><span class="badge bg">Yes</span></td></tr>
+                <tr><td>Healthcare mode</td><td><span class="badge bgr">No</span></td><td><span class="badge bg">Yes</span></td><td><span class="badge bg">Yes</span></td></tr>
+                <tr><td>White-label</td><td><span class="badge bgr">No</span></td><td><span class="badge bgr">No</span></td><td><span class="badge bg">Yes</span></td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:12px"><button class="btn btn-g btn-sm" onclick="showToast('Upgrade flow coming soon.')">Upgrade to Business</button></div>
+          </div>
+          <!-- Payment -->
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:10px">Payment method</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:10px">No payment method on file — free plan does not require one.</div>
+            <button class="btn btn-sm" onclick="showToast('Add a payment method when upgrading.')">Add payment method</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT — API KEYS -->
+      <div class="tp" id="at-account-api">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div><h2 style="font-size:15px;font-weight:600;margin-bottom:2px">API Keys</h2><p style="font-size:11px;color:var(--text3)">Keys for authenticating the Noticeify API and scanner.</p></div>
+          <button class="btn btn-g btn-sm" onclick="showToast('New API key created and copied to clipboard.')">+ Create key</button>
+        </div>
+        <div style="max-width:660px;display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="padding:10px 14px;border-bottom:.5px solid var(--b);display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)">Active keys</span>
+            </div>
+            <div style="padding:12px 14px;border-bottom:.5px solid var(--b)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                <span style="font-size:12px;font-weight:500;flex:1">ocusleep-production</span>
+                <span class="badge bg">Active</span>
+                <button class="btn btn-sm" onclick="showToast('API key copied to clipboard.')">Copy</button>
+                <button class="btn btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="showToast('Key revoked.')">Revoke</button>
+              </div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--bg2);padding:6px 10px;border-radius:var(--r)">nfy_sk_••••••••••••••••••••••••••••••••a75d</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px">Created May 1, 2026 · Last used: today</div>
+            </div>
+            <div style="padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                <span style="font-size:12px;font-weight:500;flex:1">github-actions-scanner</span>
+                <span class="badge bg">Active</span>
+                <button class="btn btn-sm" onclick="showToast('API key copied to clipboard.')">Copy</button>
+                <button class="btn btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="showToast('Key revoked.')">Revoke</button>
+              </div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--bg2);padding:6px 10px;border-radius:var(--r)">nfy_sk_••••••••••••••••••••••••••••••••b2d0</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px">Created Apr 29, 2026 · Last used: 2 days ago</div>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px">Using the API</div>
+            <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Pass your API key in the Authorization header on all requests.</p>
+            <div style="font-family:var(--mono);font-size:11px;background:var(--bg2);padding:10px 12px;border-radius:var(--r);line-height:1.8;color:var(--text2)">
+              curl https://noticeify-w39k.vercel.app/api/v1/consent/stats \<br>
+              &nbsp;&nbsp;-H <span style="color:var(--warn)">"Authorization: Bearer nfy_sk_..."</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /am -->
-  </div><!-- /app -->
-</div>
+  </div><!-- /inner app layout -->
+</div><!-- /pg-app -->
 
 <!-- ═══ SIGN UP ═══ -->
 <!-- ═══ SIGN UP ═══ -->
@@ -825,6 +1063,79 @@ hr{border:none;border-top:.5px solid var(--b)}
 </footer>
 
 <script>
+// ── Session & user state ────────────────────────────────────────────────────
+function saveSession(email) {
+  try { sessionStorage.setItem('nfy_user', email); } catch(_) {}
+}
+function getSession() {
+  try { return sessionStorage.getItem('nfy_user'); } catch(_) { return null; }
+}
+function clearSession() {
+  try { sessionStorage.removeItem('nfy_user'); } catch(_) {}
+}
+
+function initAppForUser(email) {
+  if (!email) return;
+  // Topbar pill
+  const emailEl = document.getElementById('app-user-email');
+  if (emailEl) emailEl.textContent = email;
+
+  // Avatar initials (first char of email)
+  const initial = email.charAt(0).toUpperCase();
+  ['app-avatar','profile-avatar-lg','team-avatar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = initial;
+  });
+
+  // Profile email fields
+  ['profile-email-display','profile-email-input','team-email-display'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = email;
+    if (el && el.tagName === 'INPUT') el.value = email;
+  });
+}
+
+// ── Sign-out ─────────────────────────────────────────────────────────────────
+function handleSignout() {
+  clearSession();
+  // Reset sign-in form to initial state
+  const siForm = document.getElementById('signin-form');
+  const siSuccess = document.getElementById('signin-success');
+  if (siForm)    siForm.style.display    = 'flex';
+  if (siSuccess) siSuccess.style.display = 'none';
+  const siEmail = document.getElementById('si-email');
+  const siPw    = document.getElementById('si-password');
+  if (siEmail) siEmail.value = '';
+  if (siPw)    siPw.value    = '';
+  show('signin');
+}
+
+// ── Site switcher ─────────────────────────────────────────────────────────────
+function switchSite(val) {
+  if (val === 'add') {
+    appTab('account-websites', null);
+    document.getElementById('site-switcher').value = 'ocusleep.com';
+    return;
+  }
+  const label = document.getElementById('app-site-label');
+  if (label) label.textContent = val;
+}
+
+// ── Toast notification ───────────────────────────────────────────────────────
+function showToast(msg) {
+  let toast = document.getElementById('nfy-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'nfy-toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a18;color:#eee;font-size:12px;padding:9px 18px;border-radius:8px;z-index:9999;pointer-events:none;transition:opacity .25s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
+}
+
 // ── Navigation ──────────────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
@@ -834,6 +1145,7 @@ function show(id) {
   const btn = document.querySelector(`.nl[onclick="show('${id}')"]`);
   if (btn) btn.classList.add('on');
   window.scrollTo(0, 0);
+  if (id === 'app') initAppForUser(getSession());
 }
 
 function appTab(id, clickedItem) {
@@ -877,17 +1189,14 @@ function togglePw(inputId, btn) {
 }
 
 // Persist session in sessionStorage so refreshing keeps you logged in
-function saveSession(email) {
-  try { sessionStorage.setItem('nfy_user', email); } catch(_) {}
-}
 
-function getSession() {
-  try { return sessionStorage.getItem('nfy_user'); } catch(_) { return null; }
-}
+
+
 
 // On load: if session exists, show app directly
 window.addEventListener('DOMContentLoaded', () => {
-  if (getSession()) show('app');
+  const saved = getSession();
+  if (saved) { initAppForUser(saved); show('app'); }
 });
 
 // ── Sign Up ──────────────────────────────────────────────────────────────────
@@ -934,7 +1243,7 @@ function handleSignup() {
     if (success) success.style.display = 'block';
 
     // Navigate to dashboard after brief pause
-    setTimeout(() => show('app'), 1400);
+    setTimeout(() => { initAppForUser(email); show('app'); }, 1400);
   }, 1200);
 }
 
@@ -976,7 +1285,7 @@ function handleSignin() {
     if (form)    form.style.display    = 'none';
     if (success) success.style.display = 'block';
 
-    setTimeout(() => show('app'), 1200);
+    setTimeout(() => { initAppForUser(email); show('app'); }, 1200);
   }, 900);
 }
 
